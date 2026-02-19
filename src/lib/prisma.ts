@@ -38,7 +38,9 @@ const adapter = isProduction
         user: config.user,
         password: config.password,
         database: config.database,
-        ssl: config.ssl || true,
+        // Railway MySQL: no SSL; MySQL 8 auth often needs allowPublicKeyRetrieval.
+        ssl: config.ssl,
+        allowPublicKeyRetrieval: true,
         connectionLimit: 1,
         connectTimeout: 45_000,
         acquireTimeout: 45_000,

@@ -36,7 +36,8 @@ If logs show **`pool timeout: failed to retrieve a connection from pool after �
 
 ### SSL
 
-- The app uses SSL in production. Your URL should include `?ssl-mode=REQUIRED` (or the provider’s SSL param) if the host requires it. Railway/Aiven public URLs often include this.
+- **Railway MySQL:** Do **not** add `?ssl-mode=REQUIRED`. Railway’s MySQL does not provide SSL; forcing it can cause connection timeouts. The app connects without SSL when the URL has no SSL param.
+- **Other providers (e.g. Aiven):** Add `?ssl-mode=REQUIRED` to the URL if the host requires SSL.
 
 ### If it still times out
 
