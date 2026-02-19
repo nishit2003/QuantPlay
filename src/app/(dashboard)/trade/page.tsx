@@ -92,6 +92,20 @@ export default function TradePage() {
   const [limitPrice, setLimitPrice] = useState("");
   const [executing, setExecuting] = useState(false);
   const [tradeMessage, setTradeMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard: "/" to focus search
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "/") return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      e.preventDefault();
+      searchInputRef.current?.focus();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   // Fetch discovery on mount
   useEffect(() => {
@@ -282,10 +296,10 @@ export default function TradePage() {
           <svg className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
-          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+          <input ref={searchInputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)}
             onFocus={() => results.length > 0 && setShowResults(true)}
             onBlur={() => setTimeout(() => setShowResults(false), 200)}
-            placeholder="Search ticker or company — AAPL, Tesla, MSFT..."
+            placeholder="Search ticker or company — AAPL, Tesla, MSFT... (press / to focus)"
             className="w-full rounded-xl border border-zinc-200 bg-white py-3 pl-12 pr-4 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white transition"
           />
           {searching && <div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" /></div>}

@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-// Google OAuth: signIn("google", { callbackUrl: "/dashboard" }) — add button when GOOGLE_CLIENT_ID is set
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const refCode = searchParams.get("ref") ?? undefined;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,7 +25,7 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, ref: refCode }),
       });
 
       const data = await res.json();
@@ -67,7 +69,7 @@ export default function SignUpPage() {
           Create your account
         </h2>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Start with <span className="font-semibold text-emerald-600">$100 virtual cash</span> — no credit card required.
+          Start with <span className="font-semibold text-emerald-600">$1,000 virtual cash</span> — no credit card required.
         </p>
       </div>
 
@@ -143,5 +145,13 @@ export default function SignUpPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-md animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800 h-96" />}>
+      <SignUpForm />
+    </Suspense>
   );
 }

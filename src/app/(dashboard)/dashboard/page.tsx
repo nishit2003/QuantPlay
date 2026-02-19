@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   ]);
 
   const cashBalance = Number(user.virtualCashBalance);
-  const initialBalance = 100;
+  const initialBalance = Number(user.startingVirtualCashBalance ?? 1000);
 
   const portfolioSerialized = portfolioItems.map((item) => ({
     id: item.id,

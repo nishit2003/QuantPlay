@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/require-auth";
 import { getHistory } from "@/lib/market/yahoo";
 
 const VALID_RANGES = ["1d", "5d", "1mo", "3mo", "1y", "5y"];
 
 export async function GET(req: NextRequest) {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.response;
+
   const { searchParams } = new URL(req.url);
   const symbol = searchParams.get("symbol");
   const range = searchParams.get("range") ?? "1mo";

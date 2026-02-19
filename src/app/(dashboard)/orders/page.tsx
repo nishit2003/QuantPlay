@@ -33,6 +33,8 @@ export default function OrdersPage() {
   const [trades, setTrades] = useState<TradeActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"activity" | "orders">("activity");
+  const [searchSymbol, setSearchSymbol] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "BUY" | "SELL">("all");
 
   const fetchData = useCallback(async () => {
     try {
@@ -59,8 +61,18 @@ export default function OrdersPage() {
     fetchData();
   }
 
-  const active = pendingOrders.filter((o) => o.status === "PENDING");
-  const orderHistory = pendingOrders.filter((o) => o.status !== "PENDING");
+  const symbolLower = searchSymbol.trim().toLowerCase();
+  const active = pendingOrders
+    .filter((o) => o.status === "PENDING")
+    .filter((o) => !symbolLower || o.tickerSymbol.toLowerCase().includes(symbolLower));
+  const orderHistory = pendingOrders
+    .filter((o) => o.status !== "PENDING")
+    .filter((o) => !symbolLower || o.tickerSymbol.toLowerCase().includes(symbolLower));
+  const filteredTrades = trades.filter((t) => {
+    if (symbolLower && !t.tickerSymbol.toLowerCase().includes(symbolLower)) return false;
+    if (filterType !== "all" && t.type !== filterType) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -69,6 +81,32 @@ export default function OrdersPage() {
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
           <strong>Activity</strong> shows all your trades (market + executed limit/stop). <strong>Orders</strong> shows only pending limit and stop orders.
         </p>
+      </div>
+
+      {/* Search & filter */}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          placeholder="Filter by symbol..."
+          value={searchSymbol}
+          onChange={(e) => setSearchSymbol(e.target.value)}
+          className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+        />
+        {activeTab === "activity" && (
+          <div className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+            {(["all", "BUY", "SELL"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setFilterType(t)}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                  filterType === t ? "bg-white text-zinc-900 shadow dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
+                }`}
+              >
+                {t === "all" ? "All" : t}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -81,7 +119,7 @@ export default function OrdersPage() {
               : "text-zinc-500 dark:text-zinc-400"
           }`}
         >
-          Activity ({trades.length})
+          Activity ({filteredTrades.length})
         </button>
         <button
           onClick={() => setActiveTab("orders")}
@@ -119,7 +157,7 @@ export default function OrdersPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {trades.map((t) => (
+                  {filteredTrades.map((t) => (
                     <Link
                       key={t.id}
                       href={`/trade?symbol=${t.tickerSymbol}`}

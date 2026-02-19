@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -68,13 +69,58 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    label: "Alerts",
+    href: "/alerts",
+    icon: (
+      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75v-.7V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+      </svg>
+    ),
+  },
 ];
 
-export function Sidebar() {
+export function Sidebar({ referralCode }: { referralCode?: string }) {
   const pathname = usePathname();
+  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => setOpen(false), [pathname]);
+  const inviteUrl = referralCode
+    ? typeof window !== "undefined"
+      ? `${window.location.origin}/sign-up?ref=${encodeURIComponent(referralCode)}`
+      : ""
+    : "";
+
+  function copyInviteLink() {
+    if (!inviteUrl) return;
+    navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+    <>
+      {/* Mobile menu button */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800 lg:hidden"
+        aria-label="Toggle menu"
+      >
+        {open ? (
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        ) : (
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+        )}
+      </button>
+      {open && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden
+        />
+      )}
+    <aside className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 border-b border-zinc-200 px-5 dark:border-zinc-800">
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-linear-to-br from-emerald-500 to-teal-600 text-[11px] font-extrabold text-white">
@@ -106,8 +152,33 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Sign out */}
-      <div className="border-t border-zinc-200 p-3 dark:border-zinc-800">
+      {/* Invite + Feedback + Sign out */}
+      <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 space-y-0.5">
+        {referralCode && (
+          <div className="px-3 py-2">
+            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">Invite friends — get $50 when they join</p>
+            <button
+              type="button"
+              onClick={copyInviteLink}
+              className="w-full rounded-lg bg-emerald-600/10 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/20 transition"
+            >
+              {copied ? "Copied!" : "Copy invite link"}
+            </button>
+          </div>
+        )}
+        <Link
+          href="/feedback"
+          className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition ${
+            pathname === "/feedback"
+              ? "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+              : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+          }`}
+        >
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 0A2.25 2.25 0 0 0 5.25 10.5v9a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 19.5v-9a2.25 2.25 0 0 0-2.25-2.25h-9m-9 0V6.75a2.25 2.25 0 0 1 2.25-2.25h9m-9 0a2.25 2.25 0 0 1 2.25 2.25m-9 0V6.75a2.25 2.25 0 0 0 2.25 2.25h9m-9 0V10.5" />
+          </svg>
+          Feedback
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/sign-in" })}
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-white transition"
@@ -119,5 +190,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

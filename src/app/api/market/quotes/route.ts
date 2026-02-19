@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/require-auth";
 import { getQuotes } from "@/lib/market/yahoo";
+import { apiRateLimit } from "@/lib/rate-limit";
+
+function getClientKey(request: Request): string {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    ?? request.headers.get("x-real-ip") ?? "unknown";
+}
 
 export async function GET(request: Request) {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.response;
+
+  const rl = apiRateLimit(getClientKey(request));
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const symbolsParam = searchParams.get("symbols");
   if (!symbolsParam) {

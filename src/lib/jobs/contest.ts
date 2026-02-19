@@ -43,7 +43,7 @@ export async function calculateLeaderboard(): Promise<UserRanking[]> {
     }
 
     const totalValue = cashBalance + portfolioValue;
-    const initialBalance = 100;
+    const initialBalance = Number(user.startingVirtualCashBalance ?? 1000);
     const returnPercent = initialBalance > 0 ? ((totalValue - initialBalance) / initialBalance) * 100 : 0;
 
     return {
@@ -64,6 +64,7 @@ export async function calculateLeaderboard(): Promise<UserRanking[]> {
 
   for (const user of usersWithoutHoldings) {
     const cashBalance = Number(user.virtualCashBalance);
+    const initialBalance = Number(user.startingVirtualCashBalance ?? 1000);
     rankings.push({
       userId: user.id,
       name: user.name ?? "Anonymous",
@@ -71,7 +72,7 @@ export async function calculateLeaderboard(): Promise<UserRanking[]> {
       costBasis: 0,
       cashBalance,
       totalValue: cashBalance,
-      returnPercent: ((cashBalance - 100) / 100) * 100,
+      returnPercent: initialBalance > 0 ? ((cashBalance - initialBalance) / initialBalance) * 100 : 0,
     });
   }
 

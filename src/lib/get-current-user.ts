@@ -16,6 +16,8 @@ export async function getCurrentUser() {
       email: true,
       image: true,
       virtualCashBalance: true,
+      startingVirtualCashBalance: true,
+      referralCode: true,
       createdAt: true,
     },
   });

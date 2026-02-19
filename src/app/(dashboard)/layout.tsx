@@ -18,8 +18,8 @@ export default async function DashboardLayout({
   return (
     <SessionProvider>
       <div className="flex min-h-screen bg-zinc-100 dark:bg-zinc-950">
-        <Sidebar />
-        <div className="flex flex-1 flex-col pl-60">
+        <Sidebar referralCode={user.referralCode ?? undefined} />
+        <div className="flex flex-1 flex-col pl-14 lg:pl-60">
           <Topbar
             userName={user.name}
             virtualCashBalance={Number(user.virtualCashBalance)}

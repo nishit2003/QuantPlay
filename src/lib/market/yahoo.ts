@@ -30,41 +30,73 @@ export interface StockQuote {
   sharesOutstanding: number | null;
 }
 
-export async function getQuote(symbol: string): Promise<StockQuote | null> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r: any = await yf.quote(symbol.toUpperCase());
-    if (!r || !r.regularMarketPrice) return null;
+const QUOTE_CACHE_TTL_MS = 30_000; // 30s
+const QUOTE_MAX_RETRIES = 3;
+const QUOTE_RETRY_DELAY_MS = 500;
 
-    return {
-      symbol: r.symbol,
-      shortName: r.shortName ?? r.symbol,
-      regularMarketPrice: r.regularMarketPrice,
-      regularMarketChange: r.regularMarketChange ?? 0,
-      regularMarketChangePercent: r.regularMarketChangePercent ?? 0,
-      regularMarketPreviousClose: r.regularMarketPreviousClose ?? 0,
-      regularMarketOpen: r.regularMarketOpen ?? 0,
-      regularMarketDayHigh: r.regularMarketDayHigh ?? 0,
-      regularMarketDayLow: r.regularMarketDayLow ?? 0,
-      regularMarketVolume: r.regularMarketVolume ?? 0,
-      currency: r.currency ?? "USD",
-      marketCap: r.marketCap ?? null,
-      trailingPE: r.trailingPE ?? null,
-      forwardPE: r.forwardPE ?? null,
-      epsTrailingTwelveMonths: r.epsTrailingTwelveMonths ?? null,
-      priceToBook: r.priceToBook ?? null,
-      fiftyTwoWeekHigh: r.fiftyTwoWeekHigh ?? null,
-      fiftyTwoWeekLow: r.fiftyTwoWeekLow ?? null,
-      fiftyDayAverage: r.fiftyDayAverage ?? null,
-      twoHundredDayAverage: r.twoHundredDayAverage ?? null,
-      averageDailyVolume3Month: r.averageDailyVolume3Month ?? null,
-      dividendYield: r.dividendYield ?? null,
-      sharesOutstanding: r.sharesOutstanding ?? null,
-    };
-  } catch (error) {
-    console.error(`Failed to fetch quote for ${symbol}:`, error);
-    return null;
+const quoteCache = new Map<string, { quote: StockQuote; ts: number }>();
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseQuoteResult(r: any): StockQuote {
+  const num = (v: unknown) => (typeof v === "number" && !Number.isNaN(v) ? v : 0);
+  const numOrNull = (v: unknown) => (typeof v === "number" && !Number.isNaN(v) ? v : null);
+  return {
+    symbol: r.symbol ?? "",
+    shortName: r.shortName ?? r.symbol ?? "",
+    regularMarketPrice: num(r.regularMarketPrice),
+    regularMarketChange: num(r.regularMarketChange),
+    regularMarketChangePercent: num(r.regularMarketChangePercent),
+    regularMarketPreviousClose: num(r.regularMarketPreviousClose),
+    regularMarketOpen: num(r.regularMarketOpen),
+    regularMarketDayHigh: num(r.regularMarketDayHigh),
+    regularMarketDayLow: num(r.regularMarketDayLow),
+    regularMarketVolume: num(r.regularMarketVolume),
+    currency: typeof r.currency === "string" ? r.currency : "USD",
+    marketCap: numOrNull(r.marketCap),
+    trailingPE: numOrNull(r.trailingPE),
+    forwardPE: numOrNull(r.forwardPE),
+    epsTrailingTwelveMonths: numOrNull(r.epsTrailingTwelveMonths),
+    priceToBook: numOrNull(r.priceToBook),
+    fiftyTwoWeekHigh: numOrNull(r.fiftyTwoWeekHigh),
+    fiftyTwoWeekLow: numOrNull(r.fiftyTwoWeekLow),
+    fiftyDayAverage: numOrNull(r.fiftyDayAverage),
+    twoHundredDayAverage: numOrNull(r.twoHundredDayAverage),
+    averageDailyVolume3Month: numOrNull(r.averageDailyVolume3Month),
+    dividendYield: numOrNull(r.dividendYield),
+    sharesOutstanding: numOrNull(r.sharesOutstanding),
+  };
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function getQuote(symbol: string): Promise<StockQuote | null> {
+  const key = symbol.toUpperCase();
+  const cached = quoteCache.get(key);
+  if (cached && Date.now() - cached.ts < QUOTE_CACHE_TTL_MS) {
+    return cached.quote;
   }
+
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= QUOTE_MAX_RETRIES; attempt++) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r: any = await yf.quote(key);
+      if (!r || !r.regularMarketPrice) return null;
+
+      const quote = parseQuoteResult(r);
+      quoteCache.set(key, { quote, ts: Date.now() });
+      return quote;
+    } catch (error) {
+      lastError = error;
+      if (attempt < QUOTE_MAX_RETRIES) {
+        await sleep(QUOTE_RETRY_DELAY_MS);
+      }
+    }
+  }
+  console.error(`Failed to fetch quote for ${symbol} after ${QUOTE_MAX_RETRIES} attempts:`, lastError);
+  return null;
 }
 
 /** Fetch quotes for multiple symbols in parallel. Returns a map symbol -> quote (null if failed). */

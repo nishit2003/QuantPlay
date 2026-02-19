@@ -51,15 +51,18 @@ model VerificationToken {
 // ─── Application Models ─────────────────────────────────────────────────────
 
 model User {
-  id                 String   @id @default(cuid())
-  name               String?
-  email              String?  @unique
-  emailVerified      DateTime?
-  image              String?
-  hashedPassword     String?
-  virtualCashBalance Decimal  @default(100.00) @db.Decimal(12, 2)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                         String   @id @default(cuid())
+  name                       String?
+  email                      String?  @unique
+  emailVerified              DateTime?
+  image                      String?
+  hashedPassword             String?
+  virtualCashBalance         Decimal  @default(1000.00) @db.Decimal(12, 2)
+  startingVirtualCashBalance Decimal  @default(1000.00) @db.Decimal(12, 2) // for "all time" return
+  referralCode               String?  @unique // e.g. "JOHN_A1B2" for invite link
+  referredById               String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
   accounts          Account[]
   sessions          Session[]
@@ -70,6 +73,41 @@ model User {
   watchlist         Watchlist?
   pendingOrders     PendingOrder[]
   recurringOrders   RecurringOrder[]
+  priceAlerts      PriceAlert[]
+  portfolioSnapshots PortfolioSnapshot[]
+  referredBy       User?   @relation("Referral", fields: [referredById], references: [id])
+  referredUsers    User[]  @relation("Referral")
+}
+
+// ─── Price Alerts ───────────────────────────────────────────────────────────
+
+model PriceAlert {
+  id         String   @id @default(cuid())
+  userId     String
+  tickerSymbol String @db.VarChar(10)
+  targetPrice Decimal @db.Decimal(12, 2)
+  direction  String  @db.VarChar(10) // "above" | "below"
+  triggered  Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([triggered])
+}
+
+// ─── Portfolio snapshots (for performance chart) ─────────────────────────────
+
+model PortfolioSnapshot {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime @db.Date // calendar day
+  value  Decimal  @db.Decimal(14, 2)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
 }
 
 model PortfolioItem {
