@@ -41,6 +41,7 @@ const adapter = isProduction
         ssl: config.ssl || true,
         connectionLimit: 1,
         connectTimeout: 30_000,
+        acquireTimeout: 30_000,
       });
     })()
   : new PrismaMariaDb(raw);
