@@ -4,42 +4,41 @@ Cron runs things on a schedule (pending orders, alerts, etc.). Your `.env` alrea
 
 ---
 
-## If you deploy on Vercel
+## If you deploy on Vercel (Hobby / free plan)
+
+Vercel’s free plan only allows cron jobs that run **at most once per day**. So `vercel.json` is set to run only:
+
+- **Portfolio snapshots** — daily (for the “Performance over time” chart)
+- **Dividends** — monthly
+- **Weekly contest** — Friday 4 PM ET
 
 1. Open [vercel.com](https://vercel.com) → your project.
 2. Go to **Settings** → **Environment Variables**.
-3. Add one variable:
-   - **Name:** `CRON_SECRET`
-   - **Value:** copy the same value from your `.env` (the line that says `CRON_SECRET="qp_..."`).
-4. Redeploy the project (or wait for the next deploy).
+3. Add **Name:** `CRON_SECRET`, **Value:** same as in your `.env` (`CRON_SECRET="qp_..."`).
+4. Redeploy.
 
-That’s it. Vercel will run the cron jobs automatically using the schedule in `vercel.json`.
+**Pending orders, recurring orders, and price alerts** need to run every minute or every few minutes. On the free plan Vercel can’t do that. To run those too, use cron-job.org below (free, ~5 min setup).
 
 ---
 
-## If you don’t use Vercel
+## cron-job.org (for pending orders, recurring, alerts)
 
-Use [cron-job.org](https://cron-job.org) (free, no credit card):
+Your app: **https://quant-play.vercel.app**
 
-1. Sign up at cron-job.org.
-2. Click **Create cron job**.
-3. **URL:** `https://YOUR-APP-URL/api/cron/pending-orders`  
-   (replace YOUR-APP-URL with your real app URL, e.g. `yourapp.herokuapp.com`).
-4. **Schedule:** every 1 minute (or pick “Every minute”).
-5. **Request headers:** Add one header:
-   - Name: `Authorization`
-   - Value: `Bearer qp_8K2mN9xL4vR7wY1zQ3cF6hJ0bP5sT8uA2dE4g`  
-   (use the same value as `CRON_SECRET` in your `.env`).
-6. Save.
+Use [cron-job.org](https://cron-job.org) (free). Create **3 cron jobs** with these exact URLs (add the header below to each):
 
-Repeat for other endpoints if you want:
+| Job        | URL | Schedule      |
+|------------|-----|---------------|
+| Pending orders | `https://quant-play.vercel.app/api/cron/pending-orders` | Every 1 minute |
+| Recurring  | `https://quant-play.vercel.app/api/cron/recurring`      | Every 1 hour   |
+| Alerts     | `https://quant-play.vercel.app/api/cron/alerts`         | Every 5 minutes |
 
-- `/api/cron/recurring` → every hour  
-- `/api/cron/alerts` → every 5 minutes  
-- `/api/cron/snapshots` → daily  
-- `/api/cron/contest` → weekly (Friday 4 PM)
+**Request header** (add to each job if the form has a “Headers” or “Request” section):  
+- Name: `Authorization`  
+- Value: `Bearer qp_8K2mN9xL4vR7wY1zQ3cF6hJ0bP5sT8uA2dE4g`
 
-Same URL pattern and same `Authorization: Bearer YOUR_CRON_SECRET` header.
+If there’s no header field, use the secret in the URL instead, e.g.:  
+`https://quant-play.vercel.app/api/cron/pending-orders?secret=qp_8K2mN9xL4vR7wY1zQ3cF6hJ0bP5sT8uA2dE4g`
 
 ---
 
