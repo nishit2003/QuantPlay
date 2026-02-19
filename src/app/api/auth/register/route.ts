@@ -95,7 +95,8 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
+    const err = error as Error & { code?: string };
+    console.error("Registration error:", err?.code ?? err?.name ?? "Error", err?.message ?? error);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }

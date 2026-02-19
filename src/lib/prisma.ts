@@ -40,8 +40,8 @@ const adapter = isProduction
         database: config.database,
         ssl: config.ssl || true,
         connectionLimit: 1,
-        connectTimeout: 30_000,
-        acquireTimeout: 30_000,
+        connectTimeout: 45_000,
+        acquireTimeout: 45_000,
       });
     })()
   : new PrismaMariaDb(raw);
