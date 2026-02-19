@@ -3,7 +3,7 @@
  * total holdings value as "dividend" into cash. Purely illustrative for paper trading.
  */
 import { prisma } from "@/lib/prisma";
-import { getQuote } from "@/lib/market/yahoo";
+import { getQuote } from "@/lib/market";
 
 const DIVIDEND_RATE = 0.001; // 0.1% of position value per month
 

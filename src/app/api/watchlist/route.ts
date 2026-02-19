@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
 import { prisma } from "@/lib/prisma";
-import { getQuote } from "@/lib/market/yahoo";
+import { getQuote } from "@/lib/market";
 
 export async function GET() {
   const authResult = await requireAuth();

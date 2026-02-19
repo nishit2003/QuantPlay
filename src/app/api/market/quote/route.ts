@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
-import { getQuote } from "@/lib/market/yahoo";
+import { getQuote } from "@/lib/market";
 
 export async function GET(request: Request) {
   const authResult = await requireAuth();

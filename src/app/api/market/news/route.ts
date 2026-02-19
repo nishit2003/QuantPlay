@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
-import { getStockNews } from "@/lib/market/yahoo";
+import { getStockNews } from "@/lib/market";
 
 export async function GET(req: NextRequest) {
   const authResult = await requireAuth();

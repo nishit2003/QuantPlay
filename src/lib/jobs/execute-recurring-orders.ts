@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getQuote } from "@/lib/market/yahoo";
+import { getQuote } from "@/lib/market";
 
 export async function executeRecurringOrders() {
   const now = new Date();

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getQuote } from "@/lib/market/yahoo";
+import { getQuote } from "@/lib/market";
 
 /** Snapshot each user's portfolio value for "performance over time" chart. Run daily. */
 export async function runPortfolioSnapshots() {

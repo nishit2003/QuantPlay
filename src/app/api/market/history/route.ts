@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
-import { getHistory } from "@/lib/market/yahoo";
+import { getHistory } from "@/lib/market";
 
 const VALID_RANGES = ["1d", "5d", "1mo", "3mo", "1y", "5y"];
 

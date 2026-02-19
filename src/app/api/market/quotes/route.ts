@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
-import { getQuotes } from "@/lib/market/yahoo";
+import { getQuotes } from "@/lib/market";
 import { apiRateLimit } from "@/lib/rate-limit";
 
 function getClientKey(request: Request): string {
