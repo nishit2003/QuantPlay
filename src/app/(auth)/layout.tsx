@@ -20,12 +20,12 @@ export default function AuthLayout({
             <span className="text-emerald-400">risk-free.</span>
           </h1>
           <p className="text-base text-zinc-400 leading-relaxed">
-            A professional paper trading simulator. Start with $100 virtual cash,
+            A professional paper trading simulator. Start with $1,000 virtual cash,
             analyze real-time charts, execute trades, and compete on the weekly leaderboard.
           </p>
           <div className="mt-10 grid grid-cols-3 gap-6">
             <div>
-              <p className="text-2xl font-bold text-emerald-400">$100</p>
+              <p className="text-2xl font-bold text-emerald-400">$1,000</p>
               <p className="text-xs text-zinc-500 mt-1">Free starting balance</p>
             </div>
             <div>

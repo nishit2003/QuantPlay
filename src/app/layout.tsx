@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "QuantPlay — Professional Paper Trading Simulator",
   description:
-    "Master the markets risk-free. Start with $100 virtual cash, trade real-time stocks, analyze charts, and compete on the weekly leaderboard.",
+    "Master the markets risk-free. Start with $1,000 virtual cash, trade real-time stocks, analyze charts, and compete on the weekly leaderboard.",
 };
 
 export default function RootLayout({
