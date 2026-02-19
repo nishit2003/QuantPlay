@@ -1,17 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 // Google OAuth: signIn("google", { callbackUrl: "/dashboard" }) — add button when GOOGLE_CLIENT_ID is set
 import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // If already logged in (e.g. landed here after dashboard redirect loop), send to dashboard once.
+  useEffect(() => {
+    if (status === "authenticated") {
+      window.location.href = "/dashboard";
+    }
+  }, [status]);
+
+  if (status === "authenticated" || status === "loading") {
+    return (
+      <div className="w-full max-w-md text-center text-zinc-500 dark:text-zinc-400">
+        {status === "loading" ? "Loading…" : "Taking you to dashboard…"}
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,8 +44,9 @@ export default function SignInPage() {
       if (result?.error) {
         setError("Invalid email or password.");
       } else {
-        router.push("/dashboard");
-        router.refresh();
+        // Brief delay so Chrome/Brave commit the session cookie before the next request.
+        await new Promise((r) => setTimeout(r, 150));
+        window.location.href = "/dashboard";
       }
     } catch {
       setError("Something went wrong. Please try again.");

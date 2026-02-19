@@ -36,7 +36,7 @@ function SignUpForm() {
         return;
       }
 
-      // Auto sign-in after registration
+      // Auto sign-in after registration; full page redirect so dashboard loads once (no redirect loop).
       const signInResult = await signIn("credentials", {
         email,
         password,
@@ -45,10 +45,11 @@ function SignUpForm() {
 
       if (signInResult?.error) {
         setError("Account created but sign-in failed. Please sign in manually.");
-        router.push("/sign-in");
-      } else {
-        router.push("/dashboard");
+        window.location.href = "/sign-in";
+        return;
       }
+      await new Promise((r) => setTimeout(r, 150));
+      window.location.href = "/dashboard";
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

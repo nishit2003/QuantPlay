@@ -1,5 +1,6 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { withAccelerate } from "@prisma/extension-accelerate";
 
 function parseDatabaseUrl(url: string): { host: string; port: number; user: string; password: string; database: string; ssl: boolean } {
   const withoutScheme = url.replace(/^mysql:\/\//, "");
@@ -27,34 +28,40 @@ function parseDatabaseUrl(url: string): { host: string; port: number; user: stri
 }
 
 const raw = process.env.DATABASE_URL!;
+const useAccelerate = raw?.startsWith("prisma://");
 const isProduction = !!process.env.VERCEL || process.env.NODE_ENV === "production";
 
-const adapter = isProduction
-  ? (() => {
-      const config = parseDatabaseUrl(raw);
-      return new PrismaMariaDb({
-        host: config.host,
-        port: config.port,
-        user: config.user,
-        password: config.password,
-        database: config.database,
-        // Railway MySQL: no SSL; MySQL 8 auth often needs allowPublicKeyRetrieval.
-        ssl: config.ssl,
-        allowPublicKeyRetrieval: true,
-        connectionLimit: 1,
-        connectTimeout: 45_000,
-        acquireTimeout: 45_000,
-      });
-    })()
-  : new PrismaMariaDb(raw);
+function createPrisma() {
+  if (useAccelerate) {
+    return new PrismaClient({ accelerateUrl: raw }).$extends(withAccelerate());
+  }
+  const adapter = isProduction
+    ? (() => {
+        const config = parseDatabaseUrl(raw);
+        return new PrismaMariaDb({
+          host: config.host,
+          port: config.port,
+          user: config.user,
+          password: config.password,
+          database: config.database,
+          ssl: config.ssl,
+          allowPublicKeyRetrieval: true,
+          connectionLimit: 1,
+          connectTimeout: 45_000,
+          acquireTimeout: 45_000,
+        });
+      })()
+    : new PrismaMariaDb(raw);
+  return new PrismaClient({ adapter });
+}
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma: ReturnType<typeof createPrisma> | undefined;
 };
 
-export const prisma =
-  globalForPrisma.prisma ?? new PrismaClient({ adapter });
+/** Typed as base PrismaClient so model return types (findMany, etc.) are preserved. */
+export const prisma = (globalForPrisma.prisma ?? createPrisma()) as PrismaClient;
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.prisma = prisma as ReturnType<typeof createPrisma>;
 }

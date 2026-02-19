@@ -3,12 +3,14 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// Use DIRECT_DATABASE_URL for migrations when using Prisma Accelerate (DATABASE_URL = prisma://...).
+// When DIRECT_DATABASE_URL is not set, use DATABASE_URL (local / direct MySQL).
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_DATABASE_URL"] ?? process.env["DATABASE_URL"],
   },
 });
