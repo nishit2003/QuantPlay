@@ -7,14 +7,8 @@ export async function GET(request: Request) {
   const unauthorized = requireCronSecret(request);
   if (unauthorized) return unauthorized;
 
-  try {
-    await executeRecurringOrders();
-    return NextResponse.json({ ok: true, message: "Recurring orders executed" });
-  } catch (error) {
-    console.error("[cron] Error executing recurring orders:", error);
-    return NextResponse.json(
-      { error: "Failed to execute recurring orders" },
-      { status: 500 }
-    );
-  }
+  void executeRecurringOrders().catch((err) => {
+    console.error("[cron] Error executing recurring orders:", err);
+  });
+  return NextResponse.json({ ok: true, message: "Recurring orders job started" });
 }
