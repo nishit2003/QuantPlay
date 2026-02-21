@@ -18,8 +18,13 @@ async function get<T>(path: string, params: Record<string, string> = {}): Promis
   url.searchParams.set("token", token());
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const res = await fetch(url.toString(), { next: { revalidate: 0 } });
+  const text = await res.text();
   if (!res.ok) throw new Error(`Finnhub ${path} ${res.status}`);
-  return res.json() as Promise<T>;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`Finnhub ${path} non-JSON response`);
+  }
 }
 
 // ─── Types (match yahoo.ts) ───────────────────────────────────────────────────
@@ -96,8 +101,8 @@ export async function getQuote(symbol: string): Promise<StockQuote | null> {
     };
     quoteCache.set(key, { quote, ts: Date.now() });
     return quote;
-  } catch (e) {
-    console.error(`Finnhub quote ${symbol}:`, e);
+  } catch {
+    // Finnhub may return HTML (proxy/error page) or 429; fall back to Yahoo via merge layer
     return null;
   }
 }

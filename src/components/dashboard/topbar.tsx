@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/theme-toggle";
+import { HowToUse } from "@/components/dashboard/how-to-use";
 
 interface TopbarProps {
   userName: string | null;
@@ -14,7 +15,8 @@ export function Topbar({ userName, virtualCashBalance }: TopbarProps) {
         <span className="font-semibold text-zinc-900 dark:text-white">{userName ?? "Trader"}</span>
       </p>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <HowToUse />
         <div className="flex items-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800/80">
           <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Cash</span>
           <span className="text-sm font-bold text-zinc-900 dark:text-white">
