@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { authRateLimit } from "@/lib/rate-limit";
+import { sendWelcomeEmail } from "@/lib/send-welcome-email";
 
 function getClientKey(request: Request): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -95,6 +96,11 @@ export async function POST(request: Request) {
         token: loginToken,
         expires: loginExpires,
       },
+    });
+
+    // Send thank-you / welcome email (don't block or fail sign-up if it errors)
+    sendWelcomeEmail(user.email, user.name).then((result) => {
+      if (!result.ok) console.error("[Welcome email]", result.error);
     });
 
     return NextResponse.json(
