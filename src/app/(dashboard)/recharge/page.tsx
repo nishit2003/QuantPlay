@@ -303,43 +303,28 @@ export default function RechargePage() {
               Purchase History
             </h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-zinc-100 text-left text-xs font-medium uppercase tracking-wider text-zinc-400 dark:border-zinc-800">
-                  <th className="px-6 py-3">Date</th>
-                  <th className="px-6 py-3">Virtual Cash</th>
-                  <th className="px-6 py-3">Paid</th>
-                  <th className="px-6 py-3 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {purchases.map((p) => (
-                  <tr key={p.id} className="transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <td className="whitespace-nowrap px-6 py-3.5 text-zinc-500 dark:text-zinc-400">
-                      {new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                      +${Number(p.virtualCashAdded).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3.5 text-zinc-600 dark:text-zinc-300">
-                      ${Number(p.realAmountPaid).toFixed(2)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3.5 text-right">
-                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                        p.status === "COMPLETED"
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : p.status === "PENDING"
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                      }`}>
-                        {p.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            {purchases.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    +${Number(p.virtualCashAdded).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Paid ${Number(p.realAmountPaid).toFixed(2)} &middot; {new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                </div>
+                <span className={`shrink-0 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  p.status === "COMPLETED"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                    : p.status === "PENDING"
+                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                }`}>
+                  {p.status}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

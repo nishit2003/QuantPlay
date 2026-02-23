@@ -83,22 +83,23 @@ export default function OrdersPage() {
         </p>
       </div>
 
-      {/* Search & filter */}
+      {/* Search & filter — touch-friendly on mobile */}
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="text"
           placeholder="Filter by symbol..."
           value={searchSymbol}
           onChange={(e) => setSearchSymbol(e.target.value)}
-          className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:py-2 sm:text-sm"
         />
         {activeTab === "activity" && (
-          <div className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+          <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
             {(["all", "BUY", "SELL"] as const).map((t) => (
               <button
                 key={t}
+                type="button"
                 onClick={() => setFilterType(t)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                className={`rounded-lg px-3 py-2.5 min-h-[40px] text-xs font-semibold transition touch-manipulation sm:py-1.5 sm:min-h-0 ${
                   filterType === t ? "bg-white text-zinc-900 shadow dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
                 }`}
               >
@@ -109,11 +110,12 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — min 44px on mobile */}
       <div className="flex gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
         <button
+          type="button"
           onClick={() => setActiveTab("activity")}
-          className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-semibold transition touch-manipulation sm:py-2.5 sm:min-h-0 ${
             activeTab === "activity"
               ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
               : "text-zinc-500 dark:text-zinc-400"
@@ -122,8 +124,9 @@ export default function OrdersPage() {
           Activity ({filteredTrades.length})
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab("orders")}
-          className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-semibold transition touch-manipulation sm:py-2.5 sm:min-h-0 ${
             activeTab === "orders"
               ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
               : "text-zinc-500 dark:text-zinc-400"
@@ -161,7 +164,7 @@ export default function OrdersPage() {
                     <Link
                       key={t.id}
                       href={`/trade?symbol=${t.tickerSymbol}`}
-                      className="flex items-center justify-between px-5 py-4 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      className="flex items-center justify-between px-4 py-4 min-h-[56px] transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50 touch-manipulation sm:px-5"
                     >
                       <div className="flex items-center gap-4">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${
@@ -229,8 +232,9 @@ export default function OrdersPage() {
                           </div>
                         </div>
                         <button
+                          type="button"
                           onClick={() => cancelOrder(o.id)}
-                          className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 transition"
+                          className="rounded-xl border border-zinc-200 px-4 py-3 min-h-[44px] text-sm font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 transition touch-manipulation"
                         >
                           Cancel
                         </button>

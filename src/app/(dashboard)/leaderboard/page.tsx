@@ -68,12 +68,12 @@ export default function LeaderboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Leaderboard</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Weekly competition rankings by portfolio return.</p>
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="shrink-0 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900">
           <p className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-semibold">Contest Ends In</p>
           <p className="text-lg font-bold text-zinc-900 dark:text-white">{timeLeft}</p>
         </div>

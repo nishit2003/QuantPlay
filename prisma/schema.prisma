@@ -110,6 +110,7 @@ model PriceAlert {
 
   @@index([userId])
   @@index([triggered])
+  @@index([tickerSymbol])
 }
 
 // ─── Portfolio snapshots (for performance chart) ─────────────────────────────
@@ -171,6 +172,7 @@ model TradeTransaction {
 
   @@index([userId])
   @@index([timestamp])
+  @@index([userId, tickerSymbol])
 }
 
 enum OrderStatus {
@@ -257,6 +259,8 @@ model PendingOrder {
 
   @@index([userId])
   @@index([status])
+  @@index([tickerSymbol])
+  @@index([status, expiresAt])
 }
 
 // ─── Recurring / Auto-Invest Orders ─────────────────────────────────────────

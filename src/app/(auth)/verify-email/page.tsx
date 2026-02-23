@@ -138,7 +138,7 @@ function VerifyEmailForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
+            className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-base text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition sm:py-2.5 sm:text-sm"
             placeholder="you@example.com"
           />
         </div>
@@ -155,7 +155,7 @@ function VerifyEmailForm() {
             maxLength={6}
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-            className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition text-center text-xl tracking-[0.3em]"
+            className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-base text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition text-center text-xl tracking-[0.3em] sm:py-2.5"
             placeholder="000000"
           />
         </div>
@@ -163,7 +163,7 @@ function VerifyEmailForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="w-full rounded-xl bg-emerald-600 px-4 py-3.5 min-h-[48px] text-base font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition touch-manipulation sm:py-2.5 sm:text-sm"
         >
           {loading ? "Verifying…" : "Verify & continue"}
         </button>
@@ -177,7 +177,7 @@ function VerifyEmailForm() {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+              className="font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50 py-2 -my-1 min-h-[44px] inline-flex items-center touch-manipulation"
             >
               {resending ? "Sending…" : "Resend code"}
             </button>
@@ -187,7 +187,7 @@ function VerifyEmailForm() {
 
       <p className="mt-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
         Wrong email?{" "}
-        <Link href="/sign-up" className="font-semibold text-emerald-600 hover:text-emerald-700">
+        <Link href="/sign-up" className="inline-block font-semibold text-emerald-600 hover:text-emerald-700 py-2 -my-2 touch-manipulation">
           Sign up again
         </Link>
       </p>

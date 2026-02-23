@@ -7,10 +7,15 @@ export async function GET() {
   if (!authResult.ok) return authResult.response;
   const { session } = authResult;
 
-  const purchases = await prisma.orderPurchase.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const purchases = await prisma.orderPurchase.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({ purchases });
+    return NextResponse.json({ purchases });
+  } catch (error) {
+    console.error("[recharge/history]", error);
+    return NextResponse.json({ error: "Failed to load purchase history" }, { status: 500 });
+  }
 }

@@ -97,7 +97,7 @@ function SignInForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
+            className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-base text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition sm:py-2.5 sm:text-sm"
             placeholder="you@example.com"
           />
         </div>
@@ -112,7 +112,7 @@ function SignInForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
+            className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-base text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition sm:py-2.5 sm:text-sm"
             placeholder="Your password"
           />
         </div>
@@ -120,7 +120,7 @@ function SignInForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="w-full rounded-xl bg-emerald-600 px-4 py-3.5 min-h-[48px] text-base font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition touch-manipulation sm:py-2.5 sm:text-sm"
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
@@ -130,7 +130,7 @@ function SignInForm() {
         Don&apos;t have an account?{" "}
         <Link
           href="/sign-up"
-          className="font-semibold text-emerald-600 hover:text-emerald-700"
+          className="inline-block font-semibold text-emerald-600 hover:text-emerald-700 py-2 -my-2 touch-manipulation"
         >
           Create one free
         </Link>

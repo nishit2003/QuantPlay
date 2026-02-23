@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getQuote } from "@/lib/market";
+import { getQuotes } from "@/lib/market";
 
 /** Snapshot each user's portfolio value for "performance over time" chart. Run daily. */
 export async function runPortfolioSnapshots() {
@@ -10,16 +10,19 @@ export async function runPortfolioSnapshots() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const allTickers = [
+    ...new Set(users.flatMap((u) => u.portfolioItems.map((p) => p.tickerSymbol))),
+  ];
+
+  const quotes = allTickers.length > 0 ? await getQuotes(allTickers) : {};
+
   for (const user of users) {
     const cash = Number(user.virtualCashBalance);
     let holdingsValue = 0;
-    const tickers = [...new Set(user.portfolioItems.map((p) => p.tickerSymbol))];
-    for (const t of tickers) {
-      const q = await getQuote(t);
+    for (const item of user.portfolioItems) {
+      const q = quotes[item.tickerSymbol];
       if (!q) continue;
-      const items = user.portfolioItems.filter((p) => p.tickerSymbol === t);
-      const qty = items.reduce((s, i) => s + Number(i.quantity), 0);
-      holdingsValue += q.regularMarketPrice * qty;
+      holdingsValue += q.regularMarketPrice * Number(item.quantity);
     }
     const value = cash + holdingsValue;
 

@@ -2,14 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
 import { prisma } from "@/lib/prisma";
 import { getQuote } from "@/lib/market";
-
-interface TradeBody {
-  symbol: string;
-  type: "BUY" | "SELL";
-  mode?: "SHARES" | "DOLLARS";
-  quantity?: number;
-  dollarAmount?: number;
-}
+import { tradeSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   const authResult = await requireAuth();
@@ -18,33 +11,20 @@ export async function POST(request: Request) {
 
   const userId = session.user.id;
 
-  let body: TradeBody;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { symbol, type, mode = "SHARES", quantity, dollarAmount } = body;
-
-  if (!symbol || !type) {
-    return NextResponse.json({ error: "symbol and type (BUY/SELL) are required" }, { status: 400 });
-  }
-  if (type !== "BUY" && type !== "SELL") {
-    return NextResponse.json({ error: "Type must be BUY or SELL" }, { status: 400 });
+  const parsed = tradeSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map((i) => i.message).join("; ");
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  if (mode === "SHARES") {
-    if (!quantity || quantity <= 0) {
-      return NextResponse.json({ error: "Quantity must be a positive number" }, { status: 400 });
-    }
-  } else if (mode === "DOLLARS") {
-    if (!dollarAmount || dollarAmount <= 0) {
-      return NextResponse.json({ error: "Dollar amount must be positive" }, { status: 400 });
-    }
-  } else {
-    return NextResponse.json({ error: "Mode must be SHARES or DOLLARS" }, { status: 400 });
-  }
+  const { symbol, type, mode, quantity, dollarAmount } = parsed.data;
 
   const ticker = symbol.toUpperCase();
   const quote = await getQuote(ticker);

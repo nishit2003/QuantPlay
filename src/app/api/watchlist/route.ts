@@ -8,32 +8,36 @@ export async function GET() {
   if (!authResult.ok) return authResult.response;
   const { session } = authResult;
 
-  const watchlist = await prisma.watchlist.findUnique({
-    where: { userId: session.user.id },
-    include: { items: { orderBy: { addedAt: "desc" } } },
-  });
+  try {
+    const watchlist = await prisma.watchlist.findUnique({
+      where: { userId: session.user.id },
+      include: { items: { orderBy: { addedAt: "desc" } } },
+    });
 
-  if (!watchlist || watchlist.items.length === 0) {
-    return NextResponse.json({ items: [] });
+    if (!watchlist || watchlist.items.length === 0) {
+      return NextResponse.json({ items: [] });
+    }
+
+    const enrichedItems = await Promise.all(
+      watchlist.items.map(async (item) => {
+        const quote = await getQuote(item.tickerSymbol);
+        return {
+          id: item.id,
+          tickerSymbol: item.tickerSymbol,
+          addedAt: item.addedAt,
+          price: quote?.regularMarketPrice ?? null,
+          change: quote?.regularMarketChange ?? null,
+          changePercent: quote?.regularMarketChangePercent ?? null,
+          shortName: quote?.shortName ?? item.tickerSymbol,
+        };
+      })
+    );
+
+    return NextResponse.json({ items: enrichedItems });
+  } catch (error) {
+    console.error("[watchlist GET]", error);
+    return NextResponse.json({ error: "Failed to load watchlist" }, { status: 500 });
   }
-
-  // Fetch live quotes for all watchlist items
-  const enrichedItems = await Promise.all(
-    watchlist.items.map(async (item) => {
-      const quote = await getQuote(item.tickerSymbol);
-      return {
-        id: item.id,
-        tickerSymbol: item.tickerSymbol,
-        addedAt: item.addedAt,
-        price: quote?.regularMarketPrice ?? null,
-        change: quote?.regularMarketChange ?? null,
-        changePercent: quote?.regularMarketChangePercent ?? null,
-        shortName: quote?.shortName ?? item.tickerSymbol,
-      };
-    })
-  );
-
-  return NextResponse.json({ items: enrichedItems });
 }
 
 export async function POST(request: Request) {

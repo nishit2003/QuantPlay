@@ -40,8 +40,8 @@ export default function AuthLayout({
         </div>
       </div>
 
-      {/* Right panel — auth form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-8 bg-white dark:bg-zinc-950">
+      {/* Right panel — auth form (reduced padding on phone) */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-4 sm:p-8 bg-white dark:bg-zinc-950 overflow-y-auto">
         {children}
       </div>
     </div>

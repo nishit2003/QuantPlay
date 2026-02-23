@@ -2,6 +2,8 @@
 const YahooFinance = require("yahoo-finance2").default;
 const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
+import { TtlCache } from "./cache";
+
 // ─── Quote ──────────────────────────────────────────────────────────────────
 
 export interface StockQuote {
@@ -30,11 +32,10 @@ export interface StockQuote {
   sharesOutstanding: number | null;
 }
 
-const QUOTE_CACHE_TTL_MS = 30_000; // 30s
 const QUOTE_MAX_RETRIES = 3;
 const QUOTE_RETRY_DELAY_MS = 500;
 
-const quoteCache = new Map<string, { quote: StockQuote; ts: number }>();
+const quoteCache = new TtlCache<StockQuote>(30_000);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseQuoteResult(r: any): StockQuote {
@@ -74,9 +75,7 @@ async function sleep(ms: number): Promise<void> {
 export async function getQuote(symbol: string): Promise<StockQuote | null> {
   const key = symbol.toUpperCase();
   const cached = quoteCache.get(key);
-  if (cached && Date.now() - cached.ts < QUOTE_CACHE_TTL_MS) {
-    return cached.quote;
-  }
+  if (cached) return cached;
 
   let lastError: unknown;
   for (let attempt = 1; attempt <= QUOTE_MAX_RETRIES; attempt++) {
@@ -86,7 +85,7 @@ export async function getQuote(symbol: string): Promise<StockQuote | null> {
       if (!r || !r.regularMarketPrice) return null;
 
       const quote = parseQuoteResult(r);
-      quoteCache.set(key, { quote, ts: Date.now() });
+      quoteCache.set(key, quote);
       return quote;
     } catch (error) {
       lastError = error;
@@ -240,7 +239,7 @@ export async function searchSymbols(query: string): Promise<SearchResult[]> {
       .filter(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (q: any) =>
-          q.quoteType === "EQUITY" && q.symbol && !q.symbol.includes(".")
+          (q.quoteType === "EQUITY" || q.quoteType === "ETF") && q.symbol && !q.symbol.includes(".")
       )
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((q: any) => ({

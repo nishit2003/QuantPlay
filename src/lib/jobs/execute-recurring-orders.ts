@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getQuote } from "@/lib/market";
+import { getQuotes } from "@/lib/market";
 
 export async function executeRecurringOrders() {
   const now = new Date();
@@ -8,9 +8,12 @@ export async function executeRecurringOrders() {
     where: { active: true, nextRunAt: { lte: now } },
   });
 
+  const allTickers = [...new Set(dueOrders.map((o) => o.tickerSymbol))];
+  const quotes = allTickers.length > 0 ? await getQuotes(allTickers) : {};
+
   for (const order of dueOrders) {
     try {
-      const quote = await getQuote(order.tickerSymbol);
+      const quote = quotes[order.tickerSymbol];
       if (!quote) continue;
 
       const pricePerShare = parseFloat(quote.regularMarketPrice.toFixed(2));

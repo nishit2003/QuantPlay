@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
 import { prisma } from "@/lib/prisma";
+import { orderSchema } from "@/lib/validations";
 
 export async function GET() {
   const authResult = await requireAuth();
@@ -20,39 +21,20 @@ export async function POST(request: Request) {
   if (!authResult.ok) return authResult.response;
   const { session } = authResult;
 
-  let body: {
-    symbol: string;
-    type: "BUY" | "SELL";
-    orderType: "LIMIT" | "STOP_LOSS";
-    targetPrice: number;
-    mode?: "SHARES" | "DOLLARS";
-    quantity?: number;
-    dollarAmount?: number;
-  };
-
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { symbol, type, orderType, targetPrice, mode = "SHARES", quantity, dollarAmount } = body;
-
-  if (!symbol || !type || !orderType || !targetPrice) {
-    return NextResponse.json({ error: "symbol, type, orderType, and targetPrice are required" }, { status: 400 });
+  const parsed = orderSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map((i) => i.message).join("; ");
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  if (targetPrice <= 0) {
-    return NextResponse.json({ error: "Target price must be positive" }, { status: 400 });
-  }
-
-  if (mode === "SHARES" && (!quantity || quantity <= 0)) {
-    return NextResponse.json({ error: "Quantity must be positive" }, { status: 400 });
-  }
-
-  if (mode === "DOLLARS" && (!dollarAmount || dollarAmount <= 0)) {
-    return NextResponse.json({ error: "Dollar amount must be positive" }, { status: 400 });
-  }
+  const { symbol, type, orderType, targetPrice, mode, quantity, dollarAmount } = parsed.data;
 
   const order = await prisma.pendingOrder.create({
     data: {

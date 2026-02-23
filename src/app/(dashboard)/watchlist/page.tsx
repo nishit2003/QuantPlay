@@ -54,7 +54,7 @@ export default function WatchlistPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Watchlist</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Track stocks you&apos;re interested in.</p>
@@ -66,12 +66,12 @@ export default function WatchlistPage() {
             value={addSymbol}
             onChange={(e) => setAddSymbol(e.target.value.toUpperCase())}
             placeholder="Add ticker..."
-            className="w-32 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-32 sm:flex-none sm:text-sm"
           />
           <button
             type="submit"
             disabled={adding || !addSymbol.trim()}
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition"
+            className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition touch-manipulation"
           >
             {adding ? "..." : "Add"}
           </button>
@@ -98,33 +98,33 @@ export default function WatchlistPage() {
             {items.map((item) => {
               const isPositive = (item.change ?? 0) >= 0;
               return (
-                <div key={item.id} className="flex items-center justify-between px-5 py-3.5">
+                <div key={item.id} className="flex items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
                   <Link
                     href={`/trade?symbol=${item.tickerSymbol}`}
-                    className="flex items-center gap-3 hover:opacity-80 transition"
+                    className="flex min-w-0 items-center gap-3 hover:opacity-80 transition"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-xs font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-xs font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                       {item.tickerSymbol.substring(0, 2)}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.tickerSymbol}</p>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500">{item.shortName}</p>
+                      <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">{item.shortName}</p>
                     </div>
                   </Link>
-                  <div className="flex items-center gap-4">
+                  <div className="flex shrink-0 items-center gap-3">
                     {item.price !== null && (
                       <div className="text-right">
                         <p className="text-sm font-semibold text-zinc-900 dark:text-white">
                           ${item.price.toFixed(2)}
                         </p>
                         <p className={`text-xs font-medium ${isPositive ? "text-emerald-500" : "text-red-500"}`}>
-                          {isPositive ? "+" : ""}{(item.change ?? 0).toFixed(2)} ({(item.changePercent ?? 0).toFixed(2)}%)
+                          {isPositive ? "+" : ""}{(item.changePercent ?? 0).toFixed(2)}%
                         </p>
                       </div>
                     )}
                     <button
                       onClick={() => handleRemove(item.tickerSymbol)}
-                      className="rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-red-500 dark:hover:bg-zinc-800 transition"
+                      className="rounded p-2 text-zinc-400 hover:bg-zinc-100 hover:text-red-500 dark:hover:bg-zinc-800 transition touch-manipulation"
                       title="Remove"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

@@ -1,6 +1,11 @@
 /**
  * Simple in-memory rate limit: max N requests per windowMs per key.
  * Use for API routes (e.g. by IP or userId). Resets on server restart.
+ *
+ * LIMITATION: In serverless environments (Vercel), each function invocation may
+ * get a fresh instance, so the in-memory store provides only best-effort
+ * protection. For production-grade rate limiting, migrate to a shared store
+ * such as Upstash Redis (https://upstash.com/blog/nextjs-rate-limiting).
  */
 
 const store = new Map<string, { count: number; resetAt: number }>();

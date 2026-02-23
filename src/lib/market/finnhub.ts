@@ -3,9 +3,10 @@
  * Same interface as yahoo.ts so the app can swap providers.
  */
 
+import { TtlCache } from "./cache";
+
 const BASE = "https://finnhub.io/api/v1";
-const QUOTE_CACHE_TTL_MS = 15_000; // 15s for real-time
-const quoteCache = new Map<string, { quote: StockQuote; ts: number }>();
+const quoteCache = new TtlCache<StockQuote>(15_000);
 
 function token(): string {
   const t = process.env.FINNHUB_API_KEY;
@@ -69,7 +70,7 @@ interface FinnhubQuote {
 export async function getQuote(symbol: string): Promise<StockQuote | null> {
   const key = symbol.toUpperCase();
   const cached = quoteCache.get(key);
-  if (cached && Date.now() - cached.ts < QUOTE_CACHE_TTL_MS) return cached.quote;
+  if (cached) return cached;
 
   try {
     const q = await get<FinnhubQuote>("quote", { symbol: key });
@@ -99,7 +100,7 @@ export async function getQuote(symbol: string): Promise<StockQuote | null> {
       dividendYield: null,
       sharesOutstanding: null,
     };
-    quoteCache.set(key, { quote, ts: Date.now() });
+    quoteCache.set(key, quote);
     return quote;
   } catch {
     // Finnhub may return HTML (proxy/error page) or 429; fall back to Yahoo via merge layer
@@ -238,12 +239,16 @@ export async function searchSymbols(query: string): Promise<SearchResult[]> {
     const data = await get<FinnhubSearchResult>("search", { q: query.trim() });
     const list = data.result ?? [];
     return list
-      .filter((r) => r.symbol && r.type?.toLowerCase().includes("stock"))
+      .filter((r) => {
+        if (!r.symbol) return false;
+        const t = r.type?.toLowerCase() ?? "";
+        return t.includes("stock") || t.includes("etp") || t.includes("etf");
+      })
       .map((r) => ({
         symbol: r.symbol ?? "",
         shortName: r.description ?? r.displaySymbol ?? r.symbol ?? "",
         exchange: "",
-        quoteType: "EQUITY",
+        quoteType: r.type?.toLowerCase().includes("stock") ? "EQUITY" : "ETF",
       }))
       .slice(0, 6);
   } catch (e) {

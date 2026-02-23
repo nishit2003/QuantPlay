@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/require-auth";
 import { prisma } from "@/lib/prisma";
+import { alertSchema } from "@/lib/validations";
 
 export async function GET() {
   const authResult = await requireAuth();
@@ -29,23 +30,21 @@ export async function POST(request: Request) {
   if (!authResult.ok) return authResult.response;
   const { session } = authResult;
 
-  let body: { symbol?: string; targetPrice?: number; direction?: string };
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const symbol = body.symbol?.toUpperCase();
-  const targetPrice = body.targetPrice;
-  const direction = body.direction === "below" ? "below" : "above";
-
-  if (!symbol || targetPrice == null || targetPrice <= 0) {
-    return NextResponse.json(
-      { error: "symbol and targetPrice (positive number) are required" },
-      { status: 400 }
-    );
+  const parsed = alertSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map((i) => i.message).join("; ");
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
+
+  const symbol = parsed.data.symbol.toUpperCase();
+  const { targetPrice, direction } = parsed.data;
 
   const existing = await prisma.priceAlert.count({
     where: { userId: session.user.id, triggered: false },

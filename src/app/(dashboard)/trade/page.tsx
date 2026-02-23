@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { StockChart } from "@/components/trade/stock-chart";
 
 interface SearchResult { symbol: string; shortName: string; exchange: string }
@@ -59,6 +59,19 @@ function ChangeDisplay({ change, pct, size = "sm" }: { change: number; pct: numb
 }
 
 export default function TradePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-16 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-emerald-500" />
+      </div>
+    }>
+      <TradePageInner />
+    </Suspense>
+  );
+}
+
+function TradePageInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialSymbol = searchParams.get("symbol") ?? "";
 
@@ -191,9 +204,23 @@ export default function TradePage() {
     }
   }, []);
 
+  const urlSymbol = searchParams.get("symbol") ?? "";
   useEffect(() => {
     if (initialSymbol) selectSymbol(initialSymbol);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When URL has no symbol (e.g. user clicked "Trade" in sidebar to go back), clear selection
+  useEffect(() => {
+    if (!urlSymbol.trim()) {
+      setSelectedQuote(null);
+      setQuery("");
+      setProfile(null);
+      setNews([]);
+      setAnalystRating(null);
+      setTradeMessage(null);
+      setShowProfile(false);
+    }
+  }, [urlSymbol]);
 
   const selectedSymbolRef = useRef<string | null>(null);
   selectedSymbolRef.current = selectedQuote?.symbol ?? null;
@@ -240,8 +267,12 @@ export default function TradePage() {
         }
         const res = await fetch("/api/trade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         const data = await res.json();
-        if (res.ok) { setTradeMessage({ type: "success", text: data.message }); setQuantity(""); setDollarAmount(""); }
-        else setTradeMessage({ type: "error", text: data.error });
+        if (res.ok) {
+          setTradeMessage({ type: "success", text: data.message });
+          setQuantity("");
+          setDollarAmount("");
+          router.refresh();
+        } else setTradeMessage({ type: "error", text: data.error });
       } else {
         const lp = parseFloat(limitPrice);
         if (!lp || lp <= 0) { setTradeMessage({ type: "error", text: "Enter a valid target price" }); setExecuting(false); return; }
@@ -253,8 +284,13 @@ export default function TradePage() {
         else body.dollarAmount = parseFloat(dollarAmount);
         const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         const data = await res.json();
-        if (res.ok) { setTradeMessage({ type: "success", text: data.message }); setQuantity(""); setDollarAmount(""); setLimitPrice(""); }
-        else setTradeMessage({ type: "error", text: data.error });
+        if (res.ok) {
+          setTradeMessage({ type: "success", text: data.message });
+          setQuantity("");
+          setDollarAmount("");
+          setLimitPrice("");
+          router.refresh();
+        } else setTradeMessage({ type: "error", text: data.error });
       }
     } catch {
       setTradeMessage({ type: "error", text: "Trade failed." });
@@ -315,7 +351,7 @@ export default function TradePage() {
           <input ref={searchInputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)}
             onFocus={() => results.length > 0 && setShowResults(true)}
             onBlur={() => setTimeout(() => setShowResults(false), 200)}
-            placeholder="Search ticker or company — AAPL, Tesla, MSFT... (press / to focus)"
+            placeholder="Search ticker or company"
             className="w-full rounded-xl border border-zinc-200 bg-white py-3 pl-12 pr-4 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white transition"
           />
           {searching && <div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" /></div>}
@@ -345,12 +381,12 @@ export default function TradePage() {
 
       {/* ───── DISCOVERY VIEW (no stock selected) ───── */}
       {!loadingQuote && !selectedQuote && (
-        <div className="space-y-5">
+        <div className="space-y-4 w-full min-w-0 overflow-hidden">
           {/* Market Indices Banner */}
           {discoveryLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-5 sm:overflow-visible">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                <div key={i} className="animate-pulse rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 min-w-[150px] sm:min-w-0">
                   <div className="h-3 w-16 rounded bg-zinc-200 dark:bg-zinc-700" />
                   <div className="mt-2 h-5 w-20 rounded bg-zinc-200 dark:bg-zinc-700" />
                   <div className="mt-1 h-3 w-24 rounded bg-zinc-200 dark:bg-zinc-700" />
@@ -358,11 +394,11 @@ export default function TradePage() {
               ))}
             </div>
           ) : discovery && discovery.indices.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-5 sm:overflow-visible">
               {discovery.indices.map((idx) => {
                 const up = idx.change >= 0;
                 return (
-                  <div key={idx.symbol} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div key={idx.symbol} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 min-w-[150px] shrink-0 sm:min-w-0 sm:shrink">
                     <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{idx.name}</p>
                     <p className="mt-1 text-lg font-bold text-zinc-900 dark:text-white">
                       {idx.price.toLocaleString("en-US", { maximumFractionDigits: 2 })}
@@ -380,12 +416,12 @@ export default function TradePage() {
           )}
 
           {/* Category tabs + stock list */}
-          <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-            {/* Tab row */}
-            <div className="flex gap-1 overflow-x-auto border-b border-zinc-100 px-4 pt-3 dark:border-zinc-800">
+          <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
+            {/* Tab row — touch-friendly on mobile */}
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide border-b border-zinc-100 px-3 pt-3 pb-0 dark:border-zinc-800 -mb-px">
               {tabs.map((tab) => (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-t-lg px-3.5 py-2.5 text-xs font-semibold transition ${
+                <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
+                  className={`flex items-center gap-1 shrink-0 whitespace-nowrap rounded-t-lg px-3 py-3 min-h-[44px] text-xs font-semibold transition touch-manipulation sm:px-4 sm:gap-1.5 sm:py-2.5 sm:min-h-0 ${
                     activeTab === tab.key
                       ? "border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400"
                       : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
@@ -422,29 +458,25 @@ export default function TradePage() {
                 {tabStocks.map((stock) => {
                   const up = stock.change >= 0;
                   return (
-                    <button key={stock.symbol} onClick={() => selectSymbol(stock.symbol)}
-                      className="flex w-full items-center justify-between px-5 py-3.5 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${up ? "bg-emerald-600" : "bg-red-500"}`}>
+                    <button key={stock.symbol} type="button" onClick={() => selectSymbol(stock.symbol)}
+                      className="flex w-full items-center justify-between gap-2 px-3 py-3.5 min-h-[56px] transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50 touch-manipulation sm:px-4 sm:py-3.5 sm:gap-4">
+                      <div className="flex items-center gap-2.5 min-w-0 sm:gap-3">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white sm:h-9 sm:w-9 sm:text-xs ${up ? "bg-emerald-600" : "bg-red-500"}`}>
                           {stock.symbol.slice(0, 2)}
                         </div>
-                        <div className="text-left">
+                        <div className="text-left min-w-0">
                           <p className="text-sm font-semibold text-zinc-900 dark:text-white">{stock.symbol}</p>
-                          <p className="max-w-[180px] truncate text-xs text-zinc-500 dark:text-zinc-400">{stock.shortName}</p>
+                          <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{stock.shortName}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-5">
-                        {activeTab === "active" && (
-                          <span className="hidden text-xs text-zinc-400 sm:block">Vol: {fmt(stock.volume)}</span>
-                        )}
-                        {stock.marketCap && activeTab !== "active" && (
-                          <span className="hidden text-xs text-zinc-400 sm:block">{fmt(stock.marketCap)}</span>
-                        )}
+                      <div className="flex items-center gap-2 shrink-0 sm:gap-4">
                         <div className="text-right">
-                          <p className="text-sm font-semibold text-zinc-900 dark:text-white">${stock.price.toFixed(2)}</p>
-                          <ChangeDisplay change={stock.change} pct={stock.changePercent} size="xs" />
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-white tabular-nums">${stock.price.toFixed(2)}</p>
+                          <p className={`text-xs font-medium tabular-nums ${up ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+                            {up ? "+" : ""}{stock.changePercent.toFixed(2)}%
+                          </p>
                         </div>
-                        <div className={`hidden w-20 rounded-lg px-2.5 py-1.5 text-center text-xs font-bold text-white sm:block ${up ? "bg-emerald-600" : "bg-red-500"}`}>
+                        <div className={`hidden w-[72px] rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white sm:block ${up ? "bg-emerald-600" : "bg-red-500"}`}>
                           {up ? "+" : ""}{stock.changePercent.toFixed(2)}%
                         </div>
                       </div>
@@ -458,71 +490,101 @@ export default function TradePage() {
           </div>
 
           {/* Quick pick chips */}
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-5 overflow-hidden">
             <h3 className="mb-3 text-sm font-semibold text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
               Popular Stocks
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide sm:flex-wrap sm:overflow-visible">
               {["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","NFLX","AMD","DIS","BA","UBER","COIN","PLTR","SOFI"].map((s) => (
-                <button key={s} onClick={() => selectSymbol(s)}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-emerald-700 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400">
+                <button key={s} type="button" onClick={() => selectSymbol(s)}
+                  className="shrink-0 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 min-h-[44px] text-sm font-semibold text-zinc-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-emerald-700 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400 touch-manipulation">
                   {s}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Sectors at a glance */}
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            {/* Top Gainers mini card */}
-            {discovery && discovery.gainers.length > 0 && (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                    <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Top Gainers</h3>
+          {/* Market Summary + Quick Actions — Robinhood style */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+            {/* Market Summary */}
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden sm:p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                  </svg>
                 </div>
-                <div className="space-y-2">
-                  {discovery.gainers.slice(0, 4).map((s) => (
-                    <button key={s.symbol} onClick={() => selectSymbol(s.symbol)} className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 transition hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-zinc-900 dark:text-white">{s.symbol}</span>
-                        <span className="text-xs text-zinc-400">${s.price.toFixed(2)}</span>
-                      </div>
-                      <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">+{s.changePercent.toFixed(2)}%</span>
-                    </button>
-                  ))}
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Market Summary</h3>
+              </div>
+              <div className="space-y-3">
+                {discovery && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">Market Status</span>
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Open</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">S&P 500</span>
+                      <span className={`text-xs font-semibold tabular-nums ${discovery.indices[0]?.change < 0 ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                        {discovery.indices[0]?.change < 0 ? "" : "+"}{discovery.indices[0]?.changePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">Biggest Mover</span>
+                      <button onClick={() => selectSymbol(discovery.gainers[0]?.symbol)} className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+                        {discovery.gainers[0]?.symbol} +{discovery.gainers[0]?.changePercent.toFixed(1)}%
+                      </button>
+                    </div>
+                  </>
+                )}
+                <div className="mt-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 p-3">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                    💡 <span className="font-medium text-zinc-700 dark:text-zinc-300">Tip:</span> Paper trading lets you practice strategies risk-free. Use the search bar to find any stock.
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Top Losers mini card */}
-            {discovery && discovery.losers.length > 0 && (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-                    <svg className="h-4 w-4 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6 9 12.75l4.286-4.286a11.948 11.948 0 0 1 4.306 6.43l.776 2.898m0 0 3.182-5.511m-3.182 5.51-5.511-3.181" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Top Losers</h3>
+            {/* Quick Actions */}
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden sm:p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                  <svg className="h-4 w-4 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                  </svg>
                 </div>
-                <div className="space-y-2">
-                  {discovery.losers.slice(0, 4).map((s) => (
-                    <button key={s.symbol} onClick={() => selectSymbol(s.symbol)} className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 transition hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-zinc-900 dark:text-white">{s.symbol}</span>
-                        <span className="text-xs text-zinc-400">${s.price.toFixed(2)}</span>
-                      </div>
-                      <span className="rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-900/30 dark:text-red-400">{s.changePercent.toFixed(2)}%</span>
-                    </button>
-                  ))}
-                </div>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Quick Actions</h3>
               </div>
-            )}
+              <div className="space-y-1.5">
+                <a href="/watchlist" className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-3 py-3 min-h-[44px] transition hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800 touch-manipulation">
+                  <div className="flex items-center gap-2.5">
+                    <svg className="h-4 w-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                    </svg>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Your Watchlist</span>
+                  </div>
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                </a>
+                <a href="/orders" className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-3 py-3 min-h-[44px] transition hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800 touch-manipulation">
+                  <div className="flex items-center gap-2.5">
+                    <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" />
+                    </svg>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Recent Orders</span>
+                  </div>
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                </a>
+                <a href="/dashboard" className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-3 py-3 min-h-[44px] transition hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800 touch-manipulation">
+                  <div className="flex items-center gap-2.5">
+                    <svg className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                    </svg>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Portfolio</span>
+                  </div>
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -533,12 +595,38 @@ export default function TradePage() {
           {/* Left column */}
           <div className="xl:col-span-2 space-y-5">
             {/* Stock header + chart */}
-            <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="mb-1 flex items-center gap-3">
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{selectedQuote.symbol}</h2>
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">{selectedQuote.shortName}</span>
-                <span className="text-[10px] text-zinc-400 dark:text-zinc-500">Updates every 30s</span>
-                <button onClick={toggleWatchlist} className="ml-auto rounded-lg p-1.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800" title={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+              {/* Back to trade homepage — prominent on mobile so you can return to search */}
+              <div className="mb-3 xl:mb-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedQuote(null);
+                    setQuery("");
+                    setProfile(null);
+                    setNews([]);
+                    setAnalystRating(null);
+                    setTradeMessage(null);
+                    setShowProfile(false);
+                    setQuantity("");
+                    setDollarAmount("");
+                    setLimitPrice("");
+                    router.push("/trade");
+                  }}
+                  className="xl:hidden flex items-center gap-2 rounded-xl bg-zinc-100 px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 touch-manipulation w-full sm:w-auto min-h-[44px]"
+                  aria-label="Back to search"
+                >
+                  <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                  </svg>
+                  Back to search
+                </button>
+              </div>
+              <div className="mb-1 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white sm:text-xl">{selectedQuote.symbol}</h2>
+                <span className="min-w-0 truncate text-sm text-zinc-500 dark:text-zinc-400">{selectedQuote.shortName}</span>
+                <span className="hidden text-[10px] text-zinc-400 dark:text-zinc-500 sm:inline">Updates every 30s</span>
+                <button type="button" onClick={toggleWatchlist} className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 touch-manipulation" title={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}>
                   <svg className={`h-5 w-5 ${inWatchlist ? "fill-amber-400 text-amber-400" : "text-zinc-400"}`} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" fill={inWatchlist ? "currentColor" : "none"}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                   </svg>
@@ -598,7 +686,7 @@ export default function TradePage() {
                     <div key={i} className={`${seg.color}`} style={{ width: `${(seg.count / totalAnalyst) * 100}%` }} />
                   ))}
                 </div>
-                <div className="mt-2 flex justify-between text-[10px] text-zinc-500 dark:text-zinc-400">
+                <div className="mt-2 flex flex-wrap justify-between gap-y-1 text-[10px] text-zinc-500 dark:text-zinc-400">
                   <span>Strong Buy ({analystRating.strongBuy})</span>
                   <span>Buy ({analystRating.buy})</span>
                   <span>Hold ({analystRating.hold})</span>
@@ -606,7 +694,7 @@ export default function TradePage() {
                   <span>Strong Sell ({analystRating.strongSell})</span>
                 </div>
                 {analystRating.targetMeanPrice && (
-                  <div className="mt-3 flex gap-4 text-xs">
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs sm:gap-4">
                     <span className="text-zinc-400">Target: <span className="font-semibold text-zinc-900 dark:text-white">${analystRating.targetMeanPrice.toFixed(2)}</span></span>
                     <span className="text-zinc-400">High: <span className="text-emerald-500">${analystRating.targetHighPrice?.toFixed(2)}</span></span>
                     <span className="text-zinc-400">Low: <span className="text-red-500">${analystRating.targetLowPrice?.toFixed(2)}</span></span>
@@ -634,16 +722,16 @@ export default function TradePage() {
             )}
           </div>
 
-          {/* Right column — order panel */}
+          {/* Right column — order panel (Robinhood-style: sticky bottom on mobile so it's always visible) */}
           <div className="xl:col-span-1">
-            <div className="sticky top-6 space-y-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="sticky top-20 space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none sm:p-5">
               <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider dark:text-zinc-400">Place Order</h3>
 
-              {/* Buy/Sell */}
-              <div className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+              {/* Buy/Sell — touch-friendly on mobile */}
+              <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
                 {(["BUY", "SELL"] as const).map((t) => (
-                  <button key={t} onClick={() => setOrderType(t)}
-                    className={`flex-1 rounded-md py-2 text-xs font-bold transition ${orderType === t
+                  <button key={t} type="button" onClick={() => setOrderType(t)}
+                    className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-bold transition touch-manipulation ${orderType === t
                       ? (t === "BUY" ? "bg-emerald-600 text-white" : "bg-red-500 text-white")
                       : "text-zinc-500 dark:text-zinc-400"}`}>
                     {t}
@@ -651,13 +739,13 @@ export default function TradePage() {
                 ))}
               </div>
 
-              {/* Execution type */}
+              {/* Execution type — larger tap targets on mobile */}
               <div className="relative" ref={orderTypeInfoRef}>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex flex-1 rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
                     {(["MARKET", "LIMIT", "STOP_LOSS"] as const).map((t) => (
                       <button key={t} type="button" onClick={() => setExecutionType(t)}
-                        className={`flex-1 rounded-md py-1.5 text-[10px] font-bold transition ${
+                        className={`flex-1 rounded-lg py-2.5 min-h-[40px] text-xs font-bold transition touch-manipulation sm:py-1.5 sm:min-h-0 ${
                           executionType === t ? "bg-white shadow-sm text-zinc-900 dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
                         }`}>
                         {t === "STOP_LOSS" ? "STOP" : t}
@@ -667,10 +755,10 @@ export default function TradePage() {
                   <button
                     type="button"
                     onClick={() => setOrderTypeInfoOpen((o) => !o)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition"
+                    className="flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition touch-manipulation"
                     aria-label="What are Market, Limit, and Stop?"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden>
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                     </svg>
                   </button>
@@ -696,11 +784,11 @@ export default function TradePage() {
                 )}
               </div>
 
-              {/* Mode toggle */}
-              <div className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+              {/* Mode toggle — touch-friendly on mobile */}
+              <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
                 {(["SHARES", "DOLLARS"] as const).map((m) => (
-                  <button key={m} onClick={() => setOrderMode(m)}
-                    className={`flex-1 rounded-md py-1.5 text-[10px] font-bold transition ${
+                  <button key={m} type="button" onClick={() => setOrderMode(m)}
+                    className={`flex-1 rounded-lg py-2.5 min-h-[40px] text-xs font-bold transition touch-manipulation sm:py-1.5 sm:min-h-0 ${
                       orderMode === m ? "bg-white shadow-sm text-zinc-900 dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
                     {m === "DOLLARS" ? "$ Dollars" : "Shares"}
@@ -714,30 +802,30 @@ export default function TradePage() {
                 <span className="text-sm font-bold text-zinc-900 dark:text-white">${price.toFixed(2)}</span>
               </div>
 
-              {/* Limit/Stop price */}
+              {/* Limit/Stop price — 16px text on mobile to avoid iOS zoom */}
               {executionType !== "MARKET" && (
                 <div>
-                  <label className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">
+                  <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
                     {executionType === "LIMIT" ? "Limit Price" : "Stop Price"}
                   </label>
                   <input type="number" min="0.01" step="0.01" value={limitPrice} onChange={(e) => setLimitPrice(e.target.value)} placeholder="0.00"
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:py-2 sm:text-sm" />
                 </div>
               )}
 
-              {/* Quantity/Dollar input */}
+              {/* Quantity/Dollar input — touch-friendly, 16px avoids zoom */}
               <div>
-                <label className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">
+                <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
                   {orderMode === "SHARES" ? "Shares" : "Dollar Amount"}
                 </label>
                 {orderMode === "SHARES" ? (
                   <input type="number" min="0.00000001" step="any" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0"
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:py-2 sm:text-sm" />
                 ) : (
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-zinc-400 sm:text-sm">$</span>
                     <input type="number" min="0.01" step="0.01" value={dollarAmount} onChange={(e) => setDollarAmount(e.target.value)} placeholder="0.00"
-                      className="w-full rounded-lg border border-zinc-200 bg-white pl-7 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
+                      className="w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-3 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:py-2 sm:pl-7 sm:text-sm" />
                   </div>
                 )}
               </div>
@@ -767,9 +855,9 @@ export default function TradePage() {
                 }`}>{tradeMessage.text}</div>
               )}
 
-              {/* Execute */}
-              <button onClick={executeTrade} disabled={executing}
-                className={`w-full rounded-lg px-4 py-3 text-sm font-bold text-white transition disabled:opacity-50 ${
+              {/* Execute — large touch target on mobile */}
+              <button type="button" onClick={executeTrade} disabled={executing}
+                className={`w-full rounded-xl px-4 py-4 min-h-[48px] text-base font-bold text-white transition disabled:opacity-50 touch-manipulation sm:py-3 sm:min-h-0 sm:text-sm ${
                   orderType === "BUY" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-500 hover:bg-red-600"
                 }`}>
                 {executing ? "Executing..." : executionType === "MARKET"

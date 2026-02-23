@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 const navItems = [
@@ -83,9 +83,17 @@ const navItems = [
 
 export function Sidebar({ referralCode }: { referralCode?: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [pathname]);
+
+  function handleTradeClick(e: React.MouseEvent) {
+    if (pathname.startsWith("/trade")) {
+      e.preventDefault();
+      router.push("/trade");
+    }
+  }
   const inviteUrl = referralCode
     ? typeof window !== "undefined"
       ? `${window.location.origin}/sign-up?ref=${encodeURIComponent(referralCode)}`
@@ -104,41 +112,49 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
       {/* Mobile menu button */}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800 lg:hidden"
+        onClick={() => setOpen(!open)}
+        className="fixed left-3 top-3 z-40 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm border border-zinc-200/80 dark:border-zinc-700 dark:bg-zinc-900/90 lg:hidden touch-manipulation shadow-sm"
         aria-label="Toggle menu"
       >
-        {open ? (
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        ) : (
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-        )}
+        <svg className="h-5 w-5 text-zinc-700 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setOpen(false)}
           aria-hidden
         />
       )}
-    <aside className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
-      {/* Logo */}
-      <Link href="/dashboard" className="flex h-14 items-center gap-2.5 border-b border-zinc-200 px-5 dark:border-zinc-800">
-        <Image src="/logo.png" alt="QuantPlay" width={32} height={32} className="h-8 w-8 object-contain" priority />
-        <span className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
-          QuantPlay
-        </span>
-      </Link>
+    <aside className={`fixed inset-y-0 left-0 z-30 flex w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 transition-transform duration-300 ease-out lg:w-60 lg:bg-zinc-50 lg:dark:bg-zinc-900 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Logo + close button on mobile */}
+      <div className="flex h-14 items-center justify-between border-b border-zinc-200 px-5 dark:border-zinc-800">
+        <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
+          <Image src="/logo.png" alt="QuantPlay" width={32} height={32} className="h-8 w-8 object-contain" priority />
+          <span className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
+            QuantPlay
+          </span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition lg:hidden"
+          aria-label="Close menu"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3 py-3">
+      {/* Navigation — min 44px touch targets on mobile */}
+      <nav className="flex-1 space-y-0.5 px-3 py-3 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const isTrade = item.href === "/trade";
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition ${
+              onClick={isTrade ? handleTradeClick : undefined}
+              className={`flex items-center gap-3 rounded-xl px-3 py-3 min-h-[44px] text-[13px] font-medium transition touch-manipulation lg:py-2 lg:min-h-0 ${
                 isActive
                   ? "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
                   : "text-zinc-600 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
@@ -151,15 +167,15 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
         })}
       </nav>
 
-      {/* Invite + Profile + Feedback + Sign out */}
-      <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 space-y-0.5">
+      {/* Invite + Profile + Feedback + Sign out — touch-friendly on mobile */}
+      <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 space-y-0.5 shrink-0">
         {referralCode && (
           <div className="px-3 py-2">
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">Invite friends — get $50 when they join</p>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">Invite friends — get $50 when they join</p>
             <button
               type="button"
               onClick={copyInviteLink}
-              className="w-full rounded-lg bg-emerald-600/10 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/20 transition"
+              className="w-full rounded-xl bg-emerald-600/10 px-3 py-3 min-h-[44px] text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/20 transition touch-manipulation"
             >
               {copied ? "Copied!" : "Copy invite link"}
             </button>
@@ -167,35 +183,36 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
         )}
         <Link
           href="/profile"
-          className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition ${
+          className={`flex items-center gap-3 rounded-xl px-3 py-3 min-h-[44px] text-[13px] font-medium transition touch-manipulation lg:py-2 lg:min-h-0 ${
             pathname === "/profile"
               ? "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
               : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
           }`}
         >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998-0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
           Profile
         </Link>
         <Link
           href="/feedback"
-          className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition ${
+          className={`flex items-center gap-3 rounded-xl px-3 py-3 min-h-[44px] text-[13px] font-medium transition touch-manipulation lg:py-2 lg:min-h-0 ${
             pathname === "/feedback"
               ? "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
               : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
           }`}
         >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 0A2.25 2.25 0 0 0 5.25 10.5v9a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 19.5v-9a2.25 2.25 0 0 0-2.25-2.25h-9m-9 0V6.75a2.25 2.25 0 0 1 2.25-2.25h9m-9 0a2.25 2.25 0 0 1 2.25 2.25m-9 0V6.75a2.25 2.25 0 0 0 2.25 2.25h9m-9 0V10.5" />
           </svg>
           Feedback
         </Link>
         <button
+          type="button"
           onClick={() => signOut({ callbackUrl: "/sign-in" })}
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-white transition"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 min-h-[44px] text-[13px] font-medium text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-white transition touch-manipulation lg:py-2 lg:min-h-0 text-left"
         >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
           </svg>
           Sign Out

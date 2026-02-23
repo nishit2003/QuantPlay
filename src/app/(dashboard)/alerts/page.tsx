@@ -79,27 +79,27 @@ export default function AlertsPage() {
 
       <div className="rounded-2xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Add alert</h2>
-        <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3">
+        <form onSubmit={handleAdd} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
           <div>
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Symbol</label>
             <input type="text" value={symbol} onChange={(e) => setSymbol(e.target.value)} placeholder="AAPL"
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white w-24" />
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-24 sm:py-2 sm:text-sm" />
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Target price</label>
             <input type="number" min="0.01" step="0.01" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} placeholder="150"
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white w-28" />
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-28 sm:py-2 sm:text-sm" />
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">When price goes</label>
             <select value={direction} onChange={(e) => setDirection(e.target.value as "above" | "below")}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-auto sm:py-2 sm:text-sm">
               <option value="above">Above</option>
               <option value="below">Below</option>
             </select>
           </div>
           <button type="submit" disabled={submitting}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
+            className="col-span-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 touch-manipulation sm:col-span-1 sm:py-2">
             {submitting ? "Adding…" : "Add alert"}
           </button>
         </form>
