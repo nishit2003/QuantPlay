@@ -99,9 +99,11 @@ export async function POST(request: Request) {
     });
 
     // Send thank-you / welcome email (don't block or fail sign-up if it errors)
-    sendWelcomeEmail(user.email, user.name).then((result) => {
-      if (!result.ok) console.error("[Welcome email]", result.error);
-    });
+    if (user.email && user.name) {
+      sendWelcomeEmail(user.email, user.name).then((result) => {
+        if (!result.ok) console.error("[Welcome email]", result.error);
+      });
+    }
 
     return NextResponse.json(
       { success: true, email: user.email, loginToken },
