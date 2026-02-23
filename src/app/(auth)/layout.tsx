@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function AuthLayout({
   children,
 }: {
@@ -10,9 +12,7 @@ export default function AuthLayout({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
         <div className="relative max-w-md text-white">
           <div className="flex items-center gap-2.5 mb-8">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 text-sm font-extrabold text-white">
-              QP
-            </div>
+            <Image src="/logo.png" alt="QuantPlay" width={48} height={48} className="h-12 w-12 object-contain" priority />
             <span className="text-2xl font-bold tracking-tight">QuantPlay</span>
           </div>
           <h1 className="text-3xl font-bold mb-4 leading-tight">

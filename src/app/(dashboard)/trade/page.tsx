@@ -92,8 +92,21 @@ export default function TradePage() {
   const [limitPrice, setLimitPrice] = useState("");
   const [executing, setExecuting] = useState(false);
   const [tradeMessage, setTradeMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [orderTypeInfoOpen, setOrderTypeInfoOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const skipNextShowResultsRef = useRef(false);
+  const orderTypeInfoRef = useRef<HTMLDivElement>(null);
+
+  // Close order type info when clicking outside
+  useEffect(() => {
+    if (!orderTypeInfoOpen) return;
+    function onMouseDown(e: MouseEvent) {
+      if (orderTypeInfoRef.current?.contains(e.target as Node)) return;
+      setOrderTypeInfoOpen(false);
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [orderTypeInfoOpen]);
 
   // Keyboard: "/" to focus search
   useEffect(() => {
@@ -639,15 +652,48 @@ export default function TradePage() {
               </div>
 
               {/* Execution type */}
-              <div className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
-                {(["MARKET", "LIMIT", "STOP_LOSS"] as const).map((t) => (
-                  <button key={t} onClick={() => setExecutionType(t)}
-                    className={`flex-1 rounded-md py-1.5 text-[10px] font-bold transition ${
-                      executionType === t ? "bg-white shadow-sm text-zinc-900 dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
-                    }`}>
-                    {t === "STOP_LOSS" ? "STOP" : t}
+              <div className="relative" ref={orderTypeInfoRef}>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex flex-1 rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+                    {(["MARKET", "LIMIT", "STOP_LOSS"] as const).map((t) => (
+                      <button key={t} type="button" onClick={() => setExecutionType(t)}
+                        className={`flex-1 rounded-md py-1.5 text-[10px] font-bold transition ${
+                          executionType === t ? "bg-white shadow-sm text-zinc-900 dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
+                        }`}>
+                        {t === "STOP_LOSS" ? "STOP" : t}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOrderTypeInfoOpen((o) => !o)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition"
+                    aria-label="What are Market, Limit, and Stop?"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                    </svg>
                   </button>
-                ))}
+                </div>
+                {orderTypeInfoOpen && (
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1.5 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg dark:border-zinc-700 dark:bg-zinc-800 text-left text-xs">
+                    <p className="font-semibold text-zinc-900 dark:text-white mb-2">Order types</p>
+                    <ul className="space-y-2 text-zinc-600 dark:text-zinc-300">
+                      <li>
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200">Market</span>
+                        <span className="block mt-0.5">Executes immediately at the current price. Best when you want to trade right away.</span>
+                      </li>
+                      <li>
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200">Limit</span>
+                        <span className="block mt-0.5">Your order fills only when the stock reaches your price (or better). Good for setting a target price.</span>
+                      </li>
+                      <li>
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200">Stop</span>
+                        <span className="block mt-0.5">Becomes a market order once the stock hits your stop price. Used to limit losses or lock in gains.</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* Mode toggle */}

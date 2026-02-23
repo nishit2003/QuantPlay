@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
@@ -122,14 +123,12 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
       )}
     <aside className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-zinc-200 px-5 dark:border-zinc-800">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-linear-to-br from-emerald-500 to-teal-600 text-[11px] font-extrabold text-white">
-          QP
-        </div>
+      <Link href="/dashboard" className="flex h-14 items-center gap-2.5 border-b border-zinc-200 px-5 dark:border-zinc-800">
+        <Image src="/logo.png" alt="QuantPlay" width={32} height={32} className="h-8 w-8 object-contain" priority />
         <span className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
           QuantPlay
         </span>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-0.5 px-3 py-3">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
@@ -6,14 +7,12 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950">
       {/* Nav */}
       <header className="flex items-center justify-between px-6 py-4 lg:px-12">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 text-xs font-extrabold text-white">
-            QP
-          </div>
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image src="/logo.png" alt="QuantPlay" width={40} height={40} className="h-10 w-10 object-contain" priority />
           <span className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
             QuantPlay
           </span>
-        </div>
+        </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <Link
