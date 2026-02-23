@@ -93,6 +93,7 @@ export default function TradePage() {
   const [executing, setExecuting] = useState(false);
   const [tradeMessage, setTradeMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const skipNextShowResultsRef = useRef(false);
 
   // Keyboard: "/" to focus search
   useEffect(() => {
@@ -127,8 +128,9 @@ export default function TradePage() {
         const res = await fetch(`/api/market/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         setResults(data.results ?? []);
-        setShowResults(true);
-      } catch { setResults([]); }
+        if (!skipNextShowResultsRef.current) setShowResults(true);
+        skipNextShowResultsRef.current = false;
+      } catch { setResults([]); skipNextShowResultsRef.current = false; }
       finally { setSearching(false); }
     }, 300);
     return () => clearTimeout(timeout);
@@ -136,6 +138,7 @@ export default function TradePage() {
 
   const selectSymbol = useCallback(async (symbol: string) => {
     setShowResults(false);
+    skipNextShowResultsRef.current = true;
     setQuery(symbol);
     setLoadingQuote(true);
     setTradeMessage(null);
@@ -304,7 +307,7 @@ export default function TradePage() {
           />
           {searching && <div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" /></div>}
         </div>
-        {showResults && results.length > 0 && (
+        {showResults && results.length > 0 && (!selectedQuote || query.trim().toUpperCase() !== selectedQuote.symbol) && (
           <div className="absolute z-50 mt-1 w-full rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
             {results.map((r) => (
               <button key={r.symbol} onMouseDown={() => selectSymbol(r.symbol)}

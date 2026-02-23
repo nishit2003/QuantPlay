@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { PASSWORD_RULES, validatePassword } from "@/lib/password-rules";
 
 function SignUpForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,6 +20,15 @@ function SignUpForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    const pwCheck = validatePassword(password);
+    if (!pwCheck.ok) {
+      setError(pwCheck.message);
+      return;
+    }
     setLoading(true);
 
     try {
@@ -28,28 +38,29 @@ function SignUpForm() {
         body: JSON.stringify({ name, email, password, ref: refCode }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error);
+      let data: { error?: string; needVerify?: boolean; email?: string };
+      try {
+        data = await res.json();
+      } catch {
+        setError("Invalid response from server. Try again.");
         setLoading(false);
         return;
       }
 
-      // Auto sign-in after registration; full page redirect so dashboard loads once (no redirect loop).
-      const signInResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        setError("Account created but sign-in failed. Please sign in manually.");
-        window.location.href = "/sign-in";
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.");
+        setLoading(false);
         return;
       }
-      await new Promise((r) => setTimeout(r, 150));
-      window.location.href = "/dashboard";
+
+      // API always requires email verification before account exists; never auto sign-in after register.
+      if (data.email) {
+        window.location.href = `/verify-email?email=${encodeURIComponent(data.email)}`;
+        return;
+      }
+
+      // Fallback only if API returned success without email (shouldn't happen).
+      setError("Something went wrong. Please try again.");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -115,15 +126,64 @@ function SignUpForm() {
           <label htmlFor="password" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
             Password
           </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 pr-11 text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
+              placeholder="Strong password (see requirements)"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3 3 3l18 18" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+              )}
+            </button>
+          </div>
+          <ul className="mt-1.5 space-y-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            {PASSWORD_RULES.map((rule) => (
+              <li key={rule.id} className={`flex items-center gap-1.5 ${rule.test(password) ? "text-emerald-600 dark:text-emerald-400" : ""}`}>
+                {rule.test(password) ? (
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <span className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-zinc-300 dark:border-zinc-600" />
+                )}
+                {rule.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+            Confirm password
+          </label>
           <input
-            id="password"
+            id="confirmPassword"
             type="password"
             required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
-            placeholder="At least 6 characters"
+            placeholder="Re-enter your password"
           />
         </div>
 

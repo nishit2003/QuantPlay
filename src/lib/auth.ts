@@ -20,8 +20,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        loginToken: { label: "Login token", type: "text" },
       },
       async authorize(credentials) {
+        // One-time login token (after email verification)
+        const token = credentials?.loginToken as string | undefined;
+        if (token?.trim()) {
+          const vt = await prisma.verificationToken.findUnique({
+            where: { token: token.trim() },
+          });
+          if (vt && new Date() < vt.expires && vt.identifier) {
+            await prisma.verificationToken.delete({ where: { token: vt.token } }).catch(() => {});
+            const user = await prisma.user.findUnique({
+              where: { id: vt.identifier },
+              select: { id: true, email: true, name: true },
+            });
+            if (user) return { id: user.id, email: user.email, name: user.name };
+          }
+          return null;
+        }
+
         if (!credentials?.email || !credentials?.password) {
           return null;
         }

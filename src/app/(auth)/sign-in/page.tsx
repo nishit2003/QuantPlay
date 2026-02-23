@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
-// Google OAuth: signIn("google", { callbackUrl: "/dashboard" }) — add button when GOOGLE_CLIENT_ID is set
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
-export default function SignInPage() {
-  const router = useRouter();
+function SignInForm() {
   const { status } = useSession();
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const verified = searchParams.get("verified") === "1";
+  const emailParam = searchParams.get("email") ?? "";
+  const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // If already logged in (e.g. landed here after dashboard redirect loop), send to dashboard once.
+  useEffect(() => {
+    if (emailParam) setEmail(emailParam);
+  }, [emailParam]);
+
   useEffect(() => {
     if (status === "authenticated") {
       window.location.href = "/dashboard";
@@ -73,6 +77,11 @@ export default function SignInPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {verified && (
+          <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-3 text-sm text-emerald-700 dark:text-emerald-400">
+            Email verified. Sign in with your password.
+          </div>
+        )}
         {error && (
           <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
             {error}
@@ -128,5 +137,13 @@ export default function SignInPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-md animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800 h-96" />}>
+      <SignInForm />
+    </Suspense>
   );
 }

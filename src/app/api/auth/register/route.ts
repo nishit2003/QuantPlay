@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authRateLimit } from "@/lib/rate-limit";
+import { sendSignUpOtpEmail } from "@/lib/send-otp-email";
+import { validatePassword } from "@/lib/password-rules";
 
 function getClientKey(request: Request): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -10,11 +12,16 @@ function getClientKey(request: Request): string {
 
 const STARTING_BALANCE = 1000;
 const REFERRAL_BONUS = 50;
+const OTP_EXPIRY_MINUTES = 15;
 
 function generateReferralCode(name: string): string {
   const base = (name || "user").replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 12) || "user";
   const rnd = Math.random().toString(36).slice(2, 6).toUpperCase();
   return `${base}_${rnd}`;
+}
+
+function generateOtp(): string {
+  return String(Math.floor(100_000 + Math.random() * 900_000));
 }
 
 export async function POST(request: Request) {
@@ -36,9 +43,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 6) {
+    const pwCheck = validatePassword(password);
+    if (!pwCheck.ok) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters." },
+        { error: pwCheck.message },
         { status: 400 }
       );
     }
@@ -54,14 +62,14 @@ export async function POST(request: Request) {
       );
     }
 
-    let referredById: string | null = null;
+    let referrer: { id: string; emailVerified: Date | null } | null = null;
     if (referralCode && typeof referralCode === "string") {
-      const referrer = await prisma.user.findUnique({
+      referrer = await prisma.user.findUnique({
         where: { referralCode: referralCode.trim() },
-        select: { id: true },
+        select: { id: true, emailVerified: true },
       });
-      if (referrer) referredById = referrer.id;
     }
+    const referredById = referrer?.id ?? null;
 
     const hashedPassword = await bcrypt.hash(password, 12);
     let code = generateReferralCode(name);
@@ -71,34 +79,65 @@ export async function POST(request: Request) {
       exists = await prisma.user.findUnique({ where: { referralCode: code } });
     }
 
-    const user = await prisma.user.create({
-      data: {
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+    const emailLower = email.trim().toLowerCase();
+
+    await prisma.signUpVerification.upsert({
+      where: { email: emailLower },
+      create: {
+        email: emailLower,
         name,
-        email,
         hashedPassword,
-        virtualCashBalance: STARTING_BALANCE,
-        startingVirtualCashBalance: STARTING_BALANCE,
-        referralCode: code,
         referredById,
+        referralCode: code,
+        otp,
+        expiresAt,
+      },
+      update: {
+        name,
+        hashedPassword,
+        referredById,
+        referralCode: code,
+        otp,
+        expiresAt,
       },
     });
 
-    if (referredById) {
-      await prisma.user.update({
-        where: { id: referredById },
-        data: { virtualCashBalance: { increment: REFERRAL_BONUS } },
-      });
+    const sendResult = await sendSignUpOtpEmail(email.trim(), otp);
+    if (!sendResult.ok) {
+      const isDev = process.env.NODE_ENV !== "production";
+      const resendLimit = sendResult.error?.includes("only send") ?? false;
+      // In dev, when Resend free tier blocks (only your own email): still proceed; OTP is in the terminal.
+      if (isDev && resendLimit) {
+        console.info("[DEV] OTP email not sent (Resend free-tier limit). Your code:", otp);
+        return NextResponse.json(
+          { needVerify: true, email: emailLower },
+          { status: 200 }
+        );
+      }
+      console.error("OTP email failed:", sendResult.error);
+      return NextResponse.json(
+        {
+          error: isDev && sendResult.error
+            ? `Verification email failed: ${sendResult.error}`
+            : "Could not send verification email. Please try again or contact support.",
+        },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
-      { message: "Account created successfully.", userId: user.id },
-      { status: 201 }
+      { needVerify: true, email: emailLower },
+      { status: 200 }
     );
   } catch (error) {
     const err = error as Error & { code?: string };
-    console.error("Registration error:", err?.code ?? err?.name ?? "Error", err?.message ?? error);
+    const message = err?.message ?? String(error);
+    console.error("Registration error:", err?.code ?? err?.name ?? "Error", message);
+    const isDev = process.env.NODE_ENV !== "production";
     return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
+      { error: isDev ? message : "Something went wrong. Please try again." },
       { status: 500 }
     );
   }

@@ -152,7 +152,7 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
         })}
       </nav>
 
-      {/* Invite + Feedback + Sign out */}
+      {/* Invite + Profile + Feedback + Sign out */}
       <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 space-y-0.5">
         {referralCode && (
           <div className="px-3 py-2">
@@ -166,6 +166,19 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
             </button>
           </div>
         )}
+        <Link
+          href="/profile"
+          className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition ${
+            pathname === "/profile"
+              ? "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+              : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+          }`}
+        >
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998-0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+          Profile
+        </Link>
         <Link
           href="/feedback"
           className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition ${

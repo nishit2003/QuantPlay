@@ -24,7 +24,7 @@ export default async function DashboardLayout({
             userName={user.name}
             virtualCashBalance={Number(user.virtualCashBalance)}
           />
-          <main className="flex-1 p-5">{children}</main>
+          <main className="flex-1 p-5 pb-16 lg:pb-24">{children}</main>
         </div>
       </div>
     </SessionProvider>

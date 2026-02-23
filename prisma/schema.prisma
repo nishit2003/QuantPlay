@@ -48,6 +48,22 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Pending sign-up: store until email OTP is verified, then create User and delete row.
+model SignUpVerification {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  hashedPassword String   @db.Text
+  referredById   String?
+  referralCode   String
+  otp            String   @db.VarChar(6)
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
 // ─── Application Models ─────────────────────────────────────────────────────
 
 model User {

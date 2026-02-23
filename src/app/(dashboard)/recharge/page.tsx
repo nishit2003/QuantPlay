@@ -83,6 +83,21 @@ export default function RechargePage() {
 
   return (
     <div className="space-y-8">
+      {/* Stripe disclaimer */}
+      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 dark:border-amber-800/50 dark:bg-amber-900/20">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
+          <svg className="h-5 w-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Stripe payments in progress</p>
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+            We&apos;re still figuring out transactions with Stripe — sorry for the inconvenience. If you want more virtual cash, feel free to reach out and we can add it to your account.
+          </p>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Recharge Your Account</h1>
