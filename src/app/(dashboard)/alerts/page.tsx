@@ -102,8 +102,23 @@ export default function AlertsPage() {
       <div>
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Price alerts</h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Get notified when a stock hits your target price. Alerts are checked every few minutes.
+          Get notified when a stock hits your target price.
         </p>
+      </div>
+
+      <div className="rounded-xl bg-blue-50 p-4 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-blue-500 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <strong className="font-semibold">Good to know:</strong> Price alerts and email notifications are checked automatically every 60 seconds.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
