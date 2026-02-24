@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 interface AlertItem {
@@ -30,6 +30,35 @@ export default function AlertsPage() {
   }
 
   useEffect(() => { fetchAlerts(); }, []);
+
+  const [results, setResults] = useState<{ symbol: string; shortName: string; exchange: string }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const skipNextShowResultsRef = useRef(false);
+
+  useEffect(() => {
+    if (symbol.length < 1) { setResults([]); setShowResults(false); return; }
+    if (skipNextShowResultsRef.current) { skipNextShowResultsRef.current = false; return; }
+    const timeout = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/market/search?q=${encodeURIComponent(symbol)}`);
+        const data = await res.json();
+        setResults(data.results ?? []);
+        setShowResults(true);
+      } catch { setResults([]); }
+      finally { setSearching(false); }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [symbol]);
+
+  function selectSymbol(sym: string) {
+    skipNextShowResultsRef.current = true;
+    setSymbol(sym);
+    setShowResults(false);
+    setSearchFocused(false);
+  }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -80,10 +109,29 @@ export default function AlertsPage() {
       <div className="rounded-2xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Add alert</h2>
         <form onSubmit={handleAdd} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
-          <div>
+          <div className="relative">
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Symbol</label>
-            <input type="text" value={symbol} onChange={(e) => setSymbol(e.target.value)} placeholder="AAPL"
-              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-24 sm:py-2 sm:text-sm" />
+            <div className="relative">
+              <input type="text" value={symbol} onChange={(e) => setSymbol(e.target.value)}
+                onFocus={() => { if (results.length > 0) setShowResults(true); setSearchFocused(true); }}
+                onBlur={() => setTimeout(() => { setShowResults(false); setSearchFocused(false); }, 200)}
+                placeholder="AAPL"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-48 sm:py-2 sm:text-sm" />
+              {searching && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" /></div>}
+            </div>
+            {showResults && results.length > 0 && (
+              <div className="absolute z-50 mt-1 w-full sm:w-64 rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+                {results.slice(0, 5).map((r) => (
+                  <button key={r.symbol} type="button" onMouseDown={() => selectSymbol(r.symbol)}
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-zinc-50 first:rounded-t-xl last:rounded-b-xl dark:hover:bg-zinc-800 transition">
+                    <div className="min-w-0 pr-2">
+                      <span className="font-semibold text-zinc-900 dark:text-white text-sm">{r.symbol}</span>
+                      <span className="ml-2 truncate text-xs text-zinc-500 dark:text-zinc-400">{r.shortName}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Target price</label>

@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { getQuote } from "@/lib/market";
+import { sendAlertEmail } from "@/lib/send-alert-email";
 
 export async function checkPriceAlerts() {
   const alerts = await prisma.priceAlert.findMany({
     where: { triggered: false },
+    include: { user: { select: { email: true } } }
   });
   if (alerts.length === 0) return;
 
@@ -25,6 +27,16 @@ export async function checkPriceAlerts() {
         where: { id: alert.id },
         data: { triggered: true },
       });
+      
+      // Send the email notification asynchronously
+      if (alert.user.email) {
+        sendAlertEmail(
+          alert.user.email,
+          alert.tickerSymbol,
+          target,
+          alert.direction as "above" | "below"
+        ).catch((err: unknown) => console.error("Failed to send alert email", err));
+      }
     }
   }
 }
