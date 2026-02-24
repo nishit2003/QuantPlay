@@ -84,7 +84,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Sticky Header for Search & Tabs */}
-      <div className="sticky top-[48px] lg:top-[56px] z-10 bg-zinc-100 dark:bg-zinc-950 pb-4 pt-2 -mx-3 px-3 sm:-mx-5 sm:px-5">
+      <div className="sticky top-0 z-10 bg-zinc-100 dark:bg-zinc-950 pb-4 pt-2 -mx-3 px-3 sm:-mx-5 sm:px-5">
         {/* Search & filter — touch-friendly on mobile */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <input

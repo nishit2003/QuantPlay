@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 
 const PACKAGES: Record<string, { realAmount: number; virtualCash: number; label: string }> = {
-  A: { realAmount: 200, virtualCash: 100, label: "$100 Virtual Cash" },
-  B: { realAmount: 800, virtualCash: 500, label: "$500 Virtual Cash" },
-  C: { realAmount: 2000, virtualCash: 1500, label: "$1,500 Virtual Cash" },
+  A: { realAmount: 100, virtualCash: 100, label: "$100 Virtual Cash" },
+  B: { realAmount: 300, virtualCash: 500, label: "$500 Virtual Cash" },
+  C: { realAmount: 500, virtualCash: 1500, label: "$1,500 Virtual Cash" },
 };
 
 export async function POST(request: Request) {

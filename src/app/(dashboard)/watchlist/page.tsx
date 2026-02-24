@@ -55,7 +55,7 @@ export default function WatchlistPage() {
   return (
     <div className="space-y-6">
       {/* Sticky Header for Title & Search */}
-      <div className="sticky top-[48px] lg:top-[56px] z-10 bg-zinc-100 dark:bg-zinc-950 pb-4 pt-2 -mx-3 px-3 sm:-mx-5 sm:px-5">
+      <div className="sticky top-0 z-10 bg-zinc-100 dark:bg-zinc-950 pb-4 pt-2 -mx-3 px-3 sm:-mx-5 sm:px-5">
         <div className="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Watchlist</h1>

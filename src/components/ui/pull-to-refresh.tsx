@@ -17,7 +17,10 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     // Only pull-to-refresh when scrolled to top
-    if (window.scrollY > 5) return;
+    const scrollContainer = document.getElementById("main-scroll");
+    const scrollTop = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
+    
+    if (scrollTop > 5) return;
     startY.current = e.touches[0].clientY;
     setPulling(true);
   }, []);

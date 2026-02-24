@@ -117,15 +117,19 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
 
   return (
     <>
-      {/* Mobile menu button — centered vertically in the 48px topbar */}
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="fixed left-2 top-1 z-50 flex h-10 w-10 items-center justify-center rounded-xl bg-transparent lg:hidden touch-manipulation"
-        aria-label="Toggle menu"
-      >
-        <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-      </button>
+      {/* Mobile menu button — centered vertically in the 48px topbar. Hidden when sidebar is open */}
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="fixed left-2 top-1 z-50 flex h-10 w-10 items-center justify-center rounded-xl bg-transparent lg:hidden touch-manipulation"
+          aria-label="Toggle menu"
+        >
+          <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      )}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"

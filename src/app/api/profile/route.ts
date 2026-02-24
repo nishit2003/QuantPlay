@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
+import { isProfane } from "@/lib/profanity";
 
 export async function PATCH(request: Request) {
   const authResult = await requireAuth();
@@ -12,7 +13,16 @@ export async function PATCH(request: Request) {
     const { name, email } = body;
 
     const data: { name?: string; email?: string; emailVerified?: null } = {};
-    if (typeof name === "string" && name.trim()) data.name = name.trim();
+    if (typeof name === "string" && name.trim()) {
+      const trimmedName = name.trim();
+      if (isProfane(trimmedName)) {
+        return NextResponse.json(
+          { error: "Please choose a more appropriate name." },
+          { status: 400 }
+        );
+      }
+      data.name = trimmedName;
+    }
     if (typeof email === "string" && email.trim()) {
       const trimmed = email.trim();
       if (trimmed !== session.user.email) {

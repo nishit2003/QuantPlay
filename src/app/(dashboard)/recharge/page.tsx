@@ -15,7 +15,7 @@ const packages = [
   {
     id: "A",
     label: "Starter",
-    price: 2,
+    price: 1,
     virtual: 100,
     perks: ["$100 virtual cash", "Great for trying out trades", "Instant credit to account"],
     color: "zinc" as const,
@@ -23,7 +23,7 @@ const packages = [
   {
     id: "B",
     label: "Pro",
-    price: 8,
+    price: 3,
     virtual: 500,
     perks: ["$500 virtual cash", "Best value per dollar", "Unlock larger positions", "Priority for weekly contests"],
     color: "emerald" as const,
@@ -32,9 +32,9 @@ const packages = [
   {
     id: "C",
     label: "Elite",
-    price: 20,
+    price: 5,
     virtual: 1500,
-    perks: ["$1,500 virtual cash", "Maximum buying power", "75x return on investment", "Dominate the leaderboard", "Build a diversified portfolio"],
+    perks: ["$1,500 virtual cash", "Maximum buying power", "300x return on investment", "Dominate the leaderboard", "Build a diversified portfolio"],
     color: "violet" as const,
   },
 ];

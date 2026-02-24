@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { authRateLimit } from "@/lib/rate-limit";
 import { sendSignUpOtpEmail } from "@/lib/send-otp-email";
 import { validatePassword } from "@/lib/password-rules";
+import { isProfane } from "@/lib/profanity";
 
 function getClientKey(request: Request): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -39,6 +40,13 @@ export async function POST(request: Request) {
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Name, email, and password are required." },
+        { status: 400 }
+      );
+    }
+
+    if (isProfane(name)) {
+      return NextResponse.json(
+        { error: "Please choose a more appropriate name." },
         { status: 400 }
       );
     }
