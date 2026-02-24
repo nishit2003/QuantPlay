@@ -83,57 +83,60 @@ export default function OrdersPage() {
         </p>
       </div>
 
-      {/* Search & filter — touch-friendly on mobile */}
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          placeholder="Filter by symbol..."
-          value={searchSymbol}
-          onChange={(e) => setSearchSymbol(e.target.value)}
-          className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:py-2 sm:text-sm"
-        />
-        {activeTab === "activity" && (
-          <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
-            {(["all", "BUY", "SELL"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setFilterType(t)}
-                className={`rounded-lg px-3 py-2.5 min-h-[40px] text-xs font-semibold transition touch-manipulation sm:py-1.5 sm:min-h-0 ${
-                  filterType === t ? "bg-white text-zinc-900 shadow dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
-                }`}
-              >
-                {t === "all" ? "All" : t}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Sticky Header for Search & Tabs */}
+      <div className="sticky top-[48px] lg:top-[56px] z-10 bg-zinc-100 dark:bg-zinc-950 pb-4 pt-2 -mx-3 px-3 sm:-mx-5 sm:px-5">
+        {/* Search & filter — touch-friendly on mobile */}
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <input
+            type="text"
+            placeholder="Filter by symbol..."
+            value={searchSymbol}
+            onChange={(e) => setSearchSymbol(e.target.value)}
+            className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:py-2 sm:text-sm"
+          />
+          {activeTab === "activity" && (
+            <div className="flex rounded-xl bg-zinc-200/50 p-1 dark:bg-zinc-800">
+              {(["all", "BUY", "SELL"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setFilterType(t)}
+                  className={`rounded-lg px-3 py-2.5 min-h-[40px] text-xs font-semibold transition touch-manipulation sm:py-1.5 sm:min-h-0 ${
+                    filterType === t ? "bg-white text-zinc-900 shadow dark:bg-zinc-700 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
+                  }`}
+                >
+                  {t === "all" ? "All" : t}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* Tabs — min 44px on mobile */}
-      <div className="flex gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
-        <button
-          type="button"
-          onClick={() => setActiveTab("activity")}
-          className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-semibold transition touch-manipulation sm:py-2.5 sm:min-h-0 ${
-            activeTab === "activity"
-              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
-              : "text-zinc-500 dark:text-zinc-400"
-          }`}
-        >
-          Activity ({filteredTrades.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("orders")}
-          className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-semibold transition touch-manipulation sm:py-2.5 sm:min-h-0 ${
-            activeTab === "orders"
-              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
-              : "text-zinc-500 dark:text-zinc-400"
-          }`}
-        >
-          Orders ({active.length})
-        </button>
+        {/* Tabs — min 44px on mobile */}
+        <div className="flex gap-1 rounded-xl bg-zinc-200/50 p-1 dark:bg-zinc-800">
+          <button
+            type="button"
+            onClick={() => setActiveTab("activity")}
+            className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-semibold transition touch-manipulation sm:py-2.5 sm:min-h-0 ${
+              activeTab === "activity"
+                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                : "text-zinc-500 dark:text-zinc-400"
+            }`}
+          >
+            Activity ({filteredTrades.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("orders")}
+            className={`flex-1 rounded-lg py-3 min-h-[44px] text-sm font-semibold transition touch-manipulation sm:py-2.5 sm:min-h-0 ${
+              activeTab === "orders"
+                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                : "text-zinc-500 dark:text-zinc-400"
+            }`}
+          >
+            Orders ({active.length})
+          </button>
+        </div>
       </div>
 
       {loading ? (

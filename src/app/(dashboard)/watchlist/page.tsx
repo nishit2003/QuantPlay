@@ -54,28 +54,31 @@ export default function WatchlistPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Watchlist</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Track stocks you&apos;re interested in.</p>
-        </div>
+      {/* Sticky Header for Title & Search */}
+      <div className="sticky top-[48px] lg:top-[56px] z-10 bg-zinc-100 dark:bg-zinc-950 pb-4 pt-2 -mx-3 px-3 sm:-mx-5 sm:px-5">
+        <div className="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Watchlist</h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Track stocks you&apos;re interested in.</p>
+          </div>
 
-        <form onSubmit={handleAdd} className="flex gap-2">
-          <input
-            type="text"
-            value={addSymbol}
-            onChange={(e) => setAddSymbol(e.target.value.toUpperCase())}
-            placeholder="Add ticker..."
-            className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-32 sm:flex-none sm:text-sm"
-          />
-          <button
-            type="submit"
-            disabled={adding || !addSymbol.trim()}
-            className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition touch-manipulation"
-          >
-            {adding ? "..." : "Add"}
-          </button>
-        </form>
+          <form onSubmit={handleAdd} className="flex gap-2">
+            <input
+              type="text"
+              value={addSymbol}
+              onChange={(e) => setAddSymbol(e.target.value.toUpperCase())}
+              placeholder="Add ticker..."
+              className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:w-32 sm:flex-none sm:text-sm"
+            />
+            <button
+              type="submit"
+              disabled={adding || !addSymbol.trim()}
+              className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition touch-manipulation"
+            >
+              {adding ? "..." : "Add"}
+            </button>
+          </form>
+        </div>
       </div>
 
       {loading ? (
