@@ -124,7 +124,7 @@ export default function AlertsPage() {
       <div className="rounded-2xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Add alert</h2>
         <form onSubmit={handleAdd} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
-          <div className="relative">
+          <div className="relative z-50">
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Symbol</label>
             <div className="relative">
               <input type="text" value={symbol} onChange={(e) => setSymbol(e.target.value)}
