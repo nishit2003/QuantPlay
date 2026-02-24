@@ -14,7 +14,7 @@ export default function AuthLayout({
           <div className="flex items-center gap-3 mb-10">
             <div className="relative">
               <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl scale-150" />
-              <Image src="/logo.png" alt="QuantPlay" width={80} height={80} className="relative h-16 w-16 object-contain drop-shadow-lg" priority />
+              <Image src="/logo_bull.png" alt="QuantPlay" width={80} height={80} className="relative h-16 w-16 object-contain drop-shadow-lg" priority />
             </div>
             <span className="text-3xl font-bold tracking-tight">QuantPlay</span>
           </div>

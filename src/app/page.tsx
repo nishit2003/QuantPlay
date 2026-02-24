@@ -8,7 +8,7 @@ export default function HomePage() {
       {/* Nav */}
       <header className="flex items-center justify-between gap-2 px-4 py-4 sm:px-6 lg:px-12">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Image src="/logo.png" alt="QuantPlay" width={44} height={44} className="h-10 w-10 object-contain sm:h-11 sm:w-11" priority />
+          <Image src="/logo_bull.png" alt="QuantPlay" width={44} height={44} className="h-10 w-10 object-contain sm:h-11 sm:w-11" priority />
           <span className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight sm:text-xl">
             QuantPlay
           </span>
@@ -35,7 +35,7 @@ export default function HomePage() {
         {/* Hero logo showcase */}
         <div className="relative mb-8">
           <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-2xl scale-150" />
-          <Image src="/logo.png" alt="QuantPlay" width={96} height={96} className="relative h-20 w-20 object-contain sm:h-24 sm:w-24 drop-shadow-lg" priority />
+          <Image src="/logo_bull.png" alt="QuantPlay" width={96} height={96} className="relative h-20 w-20 object-contain sm:h-24 sm:w-24 drop-shadow-lg" priority />
         </div>
 
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400 mb-6 sm:px-4 sm:text-sm">

@@ -137,7 +137,7 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
       {/* Logo + close button on mobile */}
       <div className="flex h-14 items-center justify-between border-b border-zinc-200 px-5 dark:border-zinc-800">
         <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="QuantPlay" width={32} height={32} className="h-8 w-8 object-contain" priority />
+          <Image src="/logo_bull.png" alt="QuantPlay" width={32} height={32} className="h-8 w-8 object-contain" priority />
           <span className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
             QuantPlay
           </span>

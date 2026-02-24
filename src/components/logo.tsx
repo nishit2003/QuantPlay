@@ -24,7 +24,7 @@ export function Logo({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <Image
-        src="/logo.png"
+        src="/logo_bull.png"
         alt="QuantPlay"
         width={width}
         height={height}
@@ -44,7 +44,7 @@ export function Logo({
 export function LogoIcon({ className = "" }: { className?: string }) {
   return (
     <Image
-      src="/logo.png"
+      src="/logo_bull.png"
       alt="QuantPlay"
       width={40}
       height={40}

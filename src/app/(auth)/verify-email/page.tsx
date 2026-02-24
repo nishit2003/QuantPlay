@@ -107,7 +107,7 @@ function VerifyEmailForm() {
     <div className="w-full max-w-md">
       <div className="mb-8">
         <div className="mb-6 flex items-center gap-2 lg:hidden">
-          <Image src="/logo.png" alt="QuantPlay" width={40} height={40} className="h-10 w-10 object-contain" priority />
+          <Image src="/logo_bull.png" alt="QuantPlay" width={40} height={40} className="h-10 w-10 object-contain" priority />
           <span className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">QuantPlay</span>
         </div>
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-white">
