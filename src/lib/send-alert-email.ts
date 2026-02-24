@@ -13,7 +13,7 @@ export async function sendAlertEmail(
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY is not set" };
 
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL ?? "QuantPlay <alerts@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL ?? "QuantPlay <noreply@quantplay.org>";
 
   const conditionText = direction === "above" ? "risen above" : "dropped below";
 

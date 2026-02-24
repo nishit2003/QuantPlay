@@ -16,6 +16,8 @@ export async function checkPriceAlerts() {
     if (q) priceMap[t] = q.regularMarketPrice;
   }
 
+  const emailPromises: Promise<any>[] = [];
+
   for (const alert of alerts) {
     const price = priceMap[alert.tickerSymbol];
     if (price == null) continue;
@@ -28,15 +30,19 @@ export async function checkPriceAlerts() {
         data: { triggered: true },
       });
       
-      // Send the email notification asynchronously
+      // Send the email notification asynchronously but track the promise
       if (alert.user.email) {
-        sendAlertEmail(
-          alert.user.email,
-          alert.tickerSymbol,
-          target,
-          alert.direction as "above" | "below"
-        ).catch((err: unknown) => console.error("Failed to send alert email", err));
+        emailPromises.push(
+          sendAlertEmail(
+            alert.user.email,
+            alert.tickerSymbol,
+            target,
+            alert.direction as "above" | "below"
+          ).catch((err: unknown) => console.error("Failed to send alert email", err))
+        );
       }
     }
   }
+
+  await Promise.all(emailPromises);
 }
