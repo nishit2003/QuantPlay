@@ -137,8 +137,22 @@ export default function OrdersPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-emerald-500" />
+          <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-800">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70" />
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-14 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+                  <div className="h-2.5 w-24 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-right">
+                <div className="ml-auto h-3.5 w-16 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+                <div className="ml-auto h-2.5 w-12 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <>

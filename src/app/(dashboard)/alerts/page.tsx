@@ -113,10 +113,29 @@ export default function AlertsPage() {
       <div className="rounded-2xl border border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
         <h2 className="border-b border-zinc-100 px-5 py-4 text-sm font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">Your alerts</h2>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" /></div>
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-5 py-3.5 animate-pulse">
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-14 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+                  <div className="h-2.5 w-24 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+                </div>
+                <div className="h-7 w-16 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70" />
+              </div>
+            ))}
+          </div>
         ) : alerts.length === 0 ? (
-          <div className="py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
-            No alerts yet. Add one above or <Link href="/trade" className="font-semibold text-emerald-600 hover:text-emerald-700">search a stock</Link> to set an alert.
+          <div className="flex flex-col items-center py-16 text-center px-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+              <svg className="h-8 w-8 text-amber-500 dark:text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+              </svg>
+            </div>
+            <p className="mt-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">No price alerts yet</p>
+            <p className="mt-1 max-w-xs text-xs text-zinc-500 dark:text-zinc-400">Set alerts above to get notified when stocks hit your target price.</p>
+            <Link href="/trade" className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition touch-manipulation">
+              Search stocks
+            </Link>
           </div>
         ) : (
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">

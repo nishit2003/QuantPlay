@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   }
   try {
     const body = await request.json();
-    const { name, email, password, ref: referralCode } = body;
+    const { name, email, password, ref: referralCode, referralSource } = body;
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -92,6 +92,7 @@ export async function POST(request: Request) {
         referredById,
         referralCode: code,
         otp,
+        referralSource: typeof referralSource === "string" ? referralSource.slice(0, 50) : null,
         expiresAt,
       },
       update: {
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
         referredById,
         referralCode: code,
         otp,
+        referralSource: typeof referralSource === "string" ? referralSource.slice(0, 50) : null,
         expiresAt,
       },
     });

@@ -57,6 +57,7 @@ model SignUpVerification {
   referredById   String?
   referralCode   String
   otp            String   @db.VarChar(6)
+  referralSource String?  @db.VarChar(50)
   expiresAt      DateTime
   createdAt      DateTime @default(now())
 
@@ -77,6 +78,7 @@ model User {
   startingVirtualCashBalance Decimal  @default(1000.00) @db.Decimal(12, 2) // for "all time" return
   referralCode               String?  @unique // e.g. "JOHN_A1B2" for invite link
   referredById               String?
+  referralSource             String?  @db.VarChar(50)
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 
@@ -93,6 +95,23 @@ model User {
   portfolioSnapshots PortfolioSnapshot[]
   referredBy       User?   @relation("Referral", fields: [referredById], references: [id])
   referredUsers    User[]  @relation("Referral")
+  streak           UserStreak?
+}
+
+// ─── Daily Streaks ─────────────────────────────────────────────────────────
+
+model UserStreak {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastActiveDate DateTime? @db.Date
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ─── Price Alerts ───────────────────────────────────────────────────────────

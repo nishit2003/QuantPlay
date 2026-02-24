@@ -12,6 +12,7 @@ function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [referralSource, setReferralSource] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +37,7 @@ function SignUpForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, ref: refCode }),
+        body: JSON.stringify({ name, email, password, ref: refCode, referralSource: referralSource || undefined }),
       });
 
       let data: { error?: string; needVerify?: boolean; email?: string };
@@ -184,6 +185,32 @@ function SignUpForm() {
             className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-base text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition sm:py-2.5 sm:text-sm"
             placeholder="Re-enter your password"
           />
+        </div>
+
+        <div>
+          <label htmlFor="referralSource" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+            How did you hear about us?
+          </label>
+          <select
+            id="referralSource"
+            value={referralSource}
+            onChange={(e) => setReferralSource(e.target.value)}
+            className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-base text-zinc-900 dark:text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition appearance-none sm:py-2.5 sm:text-sm"
+          >
+            <option value="">Select an option (optional)</option>
+            <option value="friend">Friend / Referral</option>
+            <option value="social_media">Social Media</option>
+            <option value="google">Google Search</option>
+            <option value="youtube">YouTube</option>
+            <option value="reddit">Reddit</option>
+            <option value="twitter">X / Twitter</option>
+            <option value="tiktok">TikTok</option>
+            <option value="instagram">Instagram</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="news_article">News / Blog Article</option>
+            <option value="app_store">App Store</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
         <button

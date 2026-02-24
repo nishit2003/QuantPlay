@@ -22,6 +22,7 @@ export default async function ProfilePage() {
 
       {/* Sign Out */}
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">Sign Out</h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">Sign out of your QuantPlay account on this device.</p>
         <SignOutButton />

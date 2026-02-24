@@ -86,7 +86,15 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
-  useEffect(() => setOpen(false), [pathname]);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Fetch streak
+  useEffect(() => {
+    fetch("/api/streak").then(r => r.json()).then(d => setCurrentStreak(d.currentStreak ?? 0)).catch(() => {});
+  }, []);
 
   function handleTradeClick(e: React.MouseEvent) {
     if (pathname.startsWith("/trade")) {
@@ -109,23 +117,23 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
 
   return (
     <>
-      {/* Mobile menu button */}
+      {/* Mobile menu button — centered vertically in the 48px topbar */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="fixed left-3 top-3 z-40 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm border border-zinc-200/80 dark:border-zinc-700 dark:bg-zinc-900/90 lg:hidden touch-manipulation shadow-sm"
+        className="fixed left-2 top-1 z-50 flex h-10 w-10 items-center justify-center rounded-xl bg-transparent lg:hidden touch-manipulation"
         aria-label="Toggle menu"
       >
-        <svg className="h-5 w-5 text-zinc-700 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+        <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setOpen(false)}
           aria-hidden
         />
       )}
-    <aside className={`fixed inset-y-0 left-0 z-30 flex w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 transition-transform duration-300 ease-out lg:w-60 lg:bg-zinc-50 lg:dark:bg-zinc-900 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 transition-transform duration-300 ease-out lg:w-60 lg:bg-zinc-50 lg:dark:bg-zinc-900 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo + close button on mobile */}
       <div className="flex h-14 items-center justify-between border-b border-zinc-200 px-5 dark:border-zinc-800">
         <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
@@ -167,8 +175,19 @@ export function Sidebar({ referralCode }: { referralCode?: string }) {
         })}
       </nav>
 
+      {/* Streak badge */}
+      {currentStreak > 0 && (
+        <div className="mx-3 mb-2 flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border border-orange-200/50 dark:border-orange-800/30 px-3 py-2.5">
+          <span className="text-lg">🔥</span>
+          <div>
+            <p className="text-xs font-bold text-orange-600 dark:text-orange-400">{currentStreak}-day streak</p>
+            <p className="text-[10px] text-orange-500/70 dark:text-orange-500/50">Keep trading daily!</p>
+          </div>
+        </div>
+      )}
+
       {/* Invite + Profile + Feedback + Sign out — touch-friendly on mobile */}
-      <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 space-y-0.5 shrink-0">
+      <div className="border-t border-zinc-200 p-3 pb-20 lg:pb-3 dark:border-zinc-800 space-y-0.5 shrink-0">
         {referralCode && (
           <div className="px-3 py-2">
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">Invite friends — get $50 when they join</p>

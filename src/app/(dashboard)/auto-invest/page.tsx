@@ -140,12 +140,29 @@ export default function AutoInvestPage() {
 
       {/* Existing orders */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-emerald-500" />
+        <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-800">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between gap-3 px-5 py-3.5 animate-pulse">
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-16 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+                <div className="h-2.5 w-32 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+              </div>
+              <div className="flex gap-2">
+                <div className="h-7 w-14 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70" />
+                <div className="h-7 w-7 rounded bg-zinc-200/70 dark:bg-zinc-800/70" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white p-12 text-center dark:border-zinc-700 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No recurring investments yet.</p>
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
+            <svg className="h-8 w-8 text-emerald-500 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <p className="mt-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">No recurring investments</p>
+          <p className="mt-1 max-w-xs text-xs text-zinc-500 dark:text-zinc-400">Create a recurring order above to automatically dollar-cost average into your favorite stocks.</p>
         </div>
       ) : (
         <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">

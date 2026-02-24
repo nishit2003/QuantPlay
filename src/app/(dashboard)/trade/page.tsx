@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { StockChart } from "@/components/trade/stock-chart";
+import { Confetti } from "@/components/ui/confetti";
 
 interface SearchResult { symbol: string; shortName: string; exchange: string }
 
@@ -105,7 +106,10 @@ function TradePageInner() {
   const [limitPrice, setLimitPrice] = useState("");
   const [executing, setExecuting] = useState(false);
   const [tradeMessage, setTradeMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [orderTypeInfoOpen, setOrderTypeInfoOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const skipNextShowResultsRef = useRef(false);
   const orderTypeInfoRef = useRef<HTMLDivElement>(null);
@@ -164,6 +168,7 @@ function TradePageInner() {
 
   const selectSymbol = useCallback(async (symbol: string) => {
     setShowResults(false);
+    setSearchFocused(false);
     skipNextShowResultsRef.current = true;
     setQuery(symbol);
     setLoadingQuote(true);
@@ -171,6 +176,14 @@ function TradePageInner() {
     setProfile(null);
     setAnalystRating(null);
     setNews([]);
+
+    // Save to recent searches
+    try {
+      const prev = JSON.parse(localStorage.getItem("qp_recent_searches") || "[]") as string[];
+      const updated = [symbol, ...prev.filter((s: string) => s !== symbol)].slice(0, 5);
+      localStorage.setItem("qp_recent_searches", JSON.stringify(updated));
+      setRecentSearches(updated);
+    } catch { /* ignore */ }
 
     try {
       const [quoteRes, profileRes, newsRes] = await Promise.all([
@@ -269,6 +282,8 @@ function TradePageInner() {
         const data = await res.json();
         if (res.ok) {
           setTradeMessage({ type: "success", text: data.message });
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 100);
           setQuantity("");
           setDollarAmount("");
           router.refresh();
@@ -286,6 +301,8 @@ function TradePageInner() {
         const data = await res.json();
         if (res.ok) {
           setTradeMessage({ type: "success", text: data.message });
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 100);
           setQuantity("");
           setDollarAmount("");
           setLimitPrice("");
@@ -340,8 +357,17 @@ function TradePageInner() {
     { key: "volatile" as const, label: "Most Volatile", icon: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" },
   ];
 
+  // Load recent searches from localStorage
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("qp_recent_searches") || "[]") as string[];
+      setRecentSearches(saved);
+    } catch { /* ignore */ }
+  }, []);
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 sm:space-y-5">
+      <Confetti trigger={showConfetti} />
       {/* Search bar */}
       <div className="relative">
         <div className="relative">
@@ -349,10 +375,10 @@ function TradePageInner() {
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
           <input ref={searchInputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => results.length > 0 && setShowResults(true)}
-            onBlur={() => setTimeout(() => setShowResults(false), 200)}
+            onFocus={() => { if (results.length > 0) setShowResults(true); setSearchFocused(true); }}
+            onBlur={() => setTimeout(() => { setShowResults(false); setSearchFocused(false); }, 200)}
             placeholder="Search ticker or company"
-            className="w-full rounded-xl border border-zinc-200 bg-white py-3 pl-12 pr-4 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white transition"
+            className="w-full rounded-xl border border-zinc-200/60 bg-white py-2.5 pl-11 pr-4 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700/60 dark:bg-zinc-900 dark:text-white transition sm:py-3 sm:pl-12"
           />
           {searching && <div className="absolute right-4 top-1/2 -translate-y-1/2"><div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" /></div>}
         </div>
@@ -368,6 +394,52 @@ function TradePageInner() {
                 <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">{r.exchange}</span>
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Recent searches + trending tickers (shown when focused with empty query) */}
+        {searchFocused && !query.trim() && !showResults && (recentSearches.length > 0 || (discovery?.trending && discovery.trending.length > 0)) && (
+          <div className="absolute z-50 mt-1 w-full rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 overflow-hidden">
+            {recentSearches.length > 0 && (
+              <div className="px-4 py-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Recent</span>
+                  <button type="button" onMouseDown={() => { localStorage.removeItem("qp_recent_searches"); setRecentSearches([]); }} className="text-[10px] font-medium text-zinc-400 hover:text-red-500 dark:text-zinc-500 transition">
+                    Clear
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {recentSearches.map((s) => (
+                    <button key={s} type="button" onMouseDown={() => selectSymbol(s)}
+                      className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 transition touch-manipulation">
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {discovery?.trending && discovery.trending.length > 0 && (
+              <div className={`px-4 py-2.5 ${recentSearches.length > 0 ? "border-t border-zinc-100 dark:border-zinc-800" : ""}`}>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-2 block">Trending</span>
+                <div className="space-y-0.5">
+                  {discovery.trending.slice(0, 3).map((stock) => {
+                    const up = stock.change >= 0;
+                    return (
+                      <button key={stock.symbol} type="button" onMouseDown={() => selectSymbol(stock.symbol)}
+                        className="flex w-full items-center justify-between px-1 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition touch-manipulation">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-zinc-900 dark:text-white">{stock.symbol}</span>
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">{stock.shortName}</span>
+                        </div>
+                        <span className={`text-xs font-medium ${up ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>
+                          {up ? "+" : ""}{stock.changePercent.toFixed(2)}%
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -398,7 +470,7 @@ function TradePageInner() {
               {discovery.indices.map((idx) => {
                 const up = idx.change >= 0;
                 return (
-                  <div key={idx.symbol} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 min-w-[150px] shrink-0 sm:min-w-0 sm:shrink">
+                  <div key={idx.symbol} className="rounded-xl border border-zinc-200/60 bg-white p-3 dark:border-zinc-800/60 dark:bg-zinc-900 min-w-[140px] shrink-0 sm:min-w-0 sm:shrink sm:p-4">
                     <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{idx.name}</p>
                     <p className="mt-1 text-lg font-bold text-zinc-900 dark:text-white">
                       {idx.price.toLocaleString("en-US", { maximumFractionDigits: 2 })}

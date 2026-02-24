@@ -75,6 +75,7 @@ export async function POST(request: Request) {
         startingVirtualCashBalance: STARTING_BALANCE,
         referralCode: pending.referralCode,
         referredById: pending.referredById,
+        referralSource: pending.referralSource,
       },
     });
 

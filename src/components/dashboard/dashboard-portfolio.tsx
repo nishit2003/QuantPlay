@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { StreakCard } from "@/components/dashboard/streak-card";
 
 const PortfolioChart = dynamic(
   () => import("@/components/dashboard/portfolio-chart").then((m) => m.PortfolioChart),
@@ -123,9 +124,12 @@ export function DashboardPortfolio({
   ], [cashBalance, holdingsValue, costBasis, dayChange, loading]);
 
   return (
-    <div className="space-y-6">
-      {/* Robinhood-style hero: big portfolio value, more padding on mobile */}
-      <div className="rounded-3xl bg-gradient-to-br from-white to-zinc-50/50 p-5 shadow-sm dark:from-zinc-900 dark:to-zinc-950/50 dark:shadow-none border border-zinc-200/60 dark:border-zinc-800 sm:p-6">
+    <div className="space-y-3 sm:space-y-6">
+      {/* Daily streak */}
+      <StreakCard />
+
+      {/* Robinhood-style hero: big portfolio value */}
+      <div className="rounded-2xl bg-gradient-to-br from-white to-zinc-50/50 p-4 shadow-sm dark:from-zinc-900 dark:to-zinc-950/50 dark:shadow-none border border-zinc-200/60 dark:border-zinc-800 sm:rounded-3xl sm:p-6">
         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400" title="Cash + current value of all holdings">
           Portfolio value
         </p>

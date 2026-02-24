@@ -4,6 +4,8 @@ import { SessionProvider } from "@/components/providers/session-provider";
 import { MobileBottomNav } from "@/components/dashboard/mobile-bottom-nav";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
+import { QuickTradeFAB } from "@/components/dashboard/quick-trade-fab";
+import { PageTransition } from "@/components/ui/page-transition";
 
 export default async function DashboardLayout({
   children,
@@ -25,9 +27,12 @@ export default async function DashboardLayout({
             userName={user.name}
             virtualCashBalance={Number(user.virtualCashBalance)}
           />
-          <main className="flex-1 p-4 pb-24 sm:p-5 lg:pb-8 min-w-0 overflow-x-hidden">{children}</main>
+          <main className="flex-1 p-3 pb-20 sm:p-5 lg:pb-8 min-w-0 overflow-x-hidden">
+            <PageTransition>{children}</PageTransition>
+          </main>
         </div>
         <MobileBottomNav />
+        <QuickTradeFAB />
       </div>
     </SessionProvider>
   );

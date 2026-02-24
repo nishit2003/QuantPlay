@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { DashboardPortfolio } from "@/components/dashboard/dashboard-portfolio";
+import { DashboardWrapper } from "@/components/dashboard/dashboard-wrapper";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -42,10 +43,11 @@ export default async function DashboardPage() {
   }));
 
   return (
+    <DashboardWrapper>
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Dashboard</h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <h1 className="text-xl font-bold text-zinc-900 dark:text-white sm:text-2xl">Dashboard</h1>
+        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 sm:text-sm sm:mt-1">
           Welcome back, {user.name ?? "Trader"}.
         </p>
       </div>
@@ -58,5 +60,6 @@ export default async function DashboardPage() {
         initialBalance={initialBalance}
       />
     </div>
+    </DashboardWrapper>
   );
 }

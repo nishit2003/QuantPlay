@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { message?: string; subject?: string; name?: string };
+  let body: { message?: string; subject?: string; name?: string; category?: string; attachment?: { name: string; base64: string } };
   try {
     body = await request.json();
   } catch {
@@ -59,12 +59,20 @@ export async function POST(request: Request) {
     );
   }
 
+  const category = body.category || "general";
+  const categoryLabel = category === "bug" ? "🐛 Bug Report" : category === "feature" ? "💡 Feature Request" : "💬 General";
+
   const session = await auth();
+
+  let attachmentHtml = "";
+  if (body.attachment?.base64) {
+    attachmentHtml = `<hr /><p><strong>Attachment:</strong> ${body.attachment.name}</p><p><img src="data:image/png;base64,${body.attachment.base64}" style="max-width:600px;border-radius:8px;" alt="attachment" /></p>`;
+  }
 
   const result = await sendFeedbackEmail({
     to,
-    message,
-    subject: typeof body.subject === "string" ? body.subject.trim().slice(0, 200) : "Suggestion",
+    message: message + attachmentHtml,
+    subject: `[${categoryLabel}] ${typeof body.subject === "string" ? body.subject.trim().slice(0, 200) : "Suggestion"}`,
     userName: body.name?.trim() || session?.user?.name || null,
     userEmail: session?.user?.email || null,
   });
@@ -78,3 +86,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true, message: "Thanks! Your feedback was sent." });
 }
+
