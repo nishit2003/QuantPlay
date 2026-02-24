@@ -33,6 +33,10 @@ export async function sendAlertEmail(
     html,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("Resend API Error:", error);
+    return { ok: false, error: error.message };
+  }
+  console.log(`Successfully sent email to ${to} for ${tickerSymbol}`);
   return { ok: true };
 }

@@ -2,7 +2,7 @@
   "crons": [
     { "path": "/api/cron/snapshots", "schedule": "0 0 * * *" },
     { "path": "/api/cron/dividends", "schedule": "0 0 1 * *" },
-    { "path": "/api/cron/alerts", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/alerts", "schedule": "* * * * *" },
     { "path": "/api/cron/contest", "schedule": "0 21 * * 5" }
   ]
 }
