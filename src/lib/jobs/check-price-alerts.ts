@@ -38,7 +38,12 @@ export async function checkPriceAlerts() {
             alert.tickerSymbol,
             target,
             alert.direction as "above" | "below"
-          ).catch((err: unknown) => console.error("Failed to send alert email", err))
+          )
+            .then(res => {
+              if (!res.ok) console.error(`[ALERT_SEND] Resend Error for ${alert.tickerSymbol}:`, res.error);
+              else console.log(`[ALERT_SEND] Success for ${alert.tickerSymbol}`);
+            })
+            .catch((err: unknown) => console.error(`[ALERT_SEND] Fatal throw for ${alert.tickerSymbol}:`, err))
         );
       }
     }

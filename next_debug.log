@@ -1,0 +1,18 @@
+
+> quantplay@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.83:3000
+- Environments: .env
+
+✓ Starting...
+Error: ENOTEMPTY: directory not empty, rmdir '/Users/nishitgrover/Desktop/quantplay/.next/dev/server'
+    at ignore-listed frames {
+  errno: -66,
+  code: 'ENOTEMPTY',
+  syscall: 'rmdir',
+  path: '/Users/nishitgrover/Desktop/quantplay/.next/dev/server'
+}
+[?25h

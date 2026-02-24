@@ -5,22 +5,18 @@ import { getQuote } from "@/lib/market";
 export async function GET() {
   try {
     await prisma.priceAlert.updateMany({
-      where: { tickerSymbol: "INTC" },
+      where: { tickerSymbol: "NVDA" },
       data: { triggered: false }
     });
 
     const alerts = await prisma.priceAlert.findMany({
-      where: { tickerSymbol: "INTC" },
-      include: { user: { select: { email: true } } }
+      include: { user: { select: { email: true } } },
+      orderBy: { createdAt: "desc" }
     });
 
-    const quote = await getQuote("INTC");
+    const quote = await getQuote("NVDA");
 
-    return NextResponse.json({
-      alerts,
-      currentPrice: quote?.regularMarketPrice,
-      quoteData: quote
-    });
+    return NextResponse.json({ alerts, quote });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
