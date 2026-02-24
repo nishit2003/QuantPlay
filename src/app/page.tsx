@@ -7,9 +7,9 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950">
       {/* Nav */}
       <header className="flex items-center justify-between gap-2 px-4 py-4 sm:px-6 lg:px-12">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <Image src="/logo.png" alt="QuantPlay" width={40} height={40} className="h-9 w-9 object-contain sm:h-10 sm:w-10" priority />
-          <span className="text-base font-bold text-zinc-900 dark:text-white tracking-tight sm:text-lg">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <Image src="/logo.png" alt="QuantPlay" width={44} height={44} className="h-10 w-10 object-contain sm:h-11 sm:w-11" priority />
+          <span className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight sm:text-xl">
             QuantPlay
           </span>
         </Link>
@@ -32,6 +32,12 @@ export default function HomePage() {
 
       {/* Hero */}
       <main className="flex flex-1 flex-col items-center justify-center px-4 text-center sm:px-6">
+        {/* Hero logo showcase */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-2xl scale-150" />
+          <Image src="/logo.png" alt="QuantPlay" width={96} height={96} className="relative h-20 w-20 object-contain sm:h-24 sm:w-24 drop-shadow-lg" priority />
+        </div>
+
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400 mb-6 sm:px-4 sm:text-sm">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

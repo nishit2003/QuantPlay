@@ -11,9 +11,12 @@ export default function AuthLayout({
       <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-zinc-900 via-emerald-950 to-zinc-900 items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
         <div className="relative max-w-md text-white">
-          <div className="flex items-center gap-2.5 mb-8">
-            <Image src="/logo.png" alt="QuantPlay" width={48} height={48} className="h-12 w-12 object-contain" priority />
-            <span className="text-2xl font-bold tracking-tight">QuantPlay</span>
+          <div className="flex items-center gap-3 mb-10">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl scale-150" />
+              <Image src="/logo.png" alt="QuantPlay" width={80} height={80} className="relative h-16 w-16 object-contain drop-shadow-lg" priority />
+            </div>
+            <span className="text-3xl font-bold tracking-tight">QuantPlay</span>
           </div>
           <h1 className="text-3xl font-bold mb-4 leading-tight">
             Master the markets,{" "}
