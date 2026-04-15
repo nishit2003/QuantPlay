@@ -2,7 +2,10 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
-function parseDatabaseUrl(url: string): { host: string; port: number; user: string; password: string; database: string; ssl: boolean } {
+const raw = process.env.DATABASE_URL!;
+const useAccelerate = raw?.startsWith("prisma://");
+
+function parseDatabaseUrl(url: string) {
   const withoutScheme = url.replace(/^mysql:\/\//, "");
   const lastAt = withoutScheme.lastIndexOf("@");
   const auth = withoutScheme.slice(0, lastAt);
@@ -13,45 +16,37 @@ function parseDatabaseUrl(url: string): { host: string; port: number; user: stri
   const [hostPort, dbPath] = hostPart.split("/");
   const [host, portStr] = hostPort.split(":");
   const database = (dbPath?.split("?")[0] || "defaultdb").trim() || "defaultdb";
-  const ssl =
-    url.includes("ssl-mode=REQUIRED") ||
-    url.includes("sslmode=require") ||
-    url.includes("ssl=true");
   return {
     host: host?.trim() || "localhost",
     port: portStr ? parseInt(portStr, 10) : 3306,
     user,
     password,
     database,
-    ssl,
   };
 }
-
-const raw = process.env.DATABASE_URL!;
-const useAccelerate = raw?.startsWith("prisma://");
-const isProduction = !!process.env.VERCEL || process.env.NODE_ENV === "production";
 
 function createPrisma() {
   if (useAccelerate) {
     return new PrismaClient({ accelerateUrl: raw }).$extends(withAccelerate());
   }
-  const adapter = isProduction
-    ? (() => {
-        const config = parseDatabaseUrl(raw);
-        return new PrismaMariaDb({
-          host: config.host,
-          port: config.port,
-          user: config.user,
-          password: config.password,
-          database: config.database,
-          ssl: config.ssl,
-          allowPublicKeyRetrieval: true,
-          connectionLimit: 1,
-          connectTimeout: 45_000,
-          acquireTimeout: 45_000,
-        });
-      })()
-    : new PrismaMariaDb(raw);
+
+  // PrismaMariaDb creates its own internal pool from the config we give it.
+  // TiDB Cloud Serverless requires SNI (servername) in the TLS handshake,
+  // so we must pass a config object with explicit SSL settings — NOT a URL string,
+  // because the mariadb driver doesn't support SNI via URL query params.
+  const config = parseDatabaseUrl(raw);
+  const adapter = new PrismaMariaDb({
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: config.database,
+    ssl: { rejectUnauthorized: true, servername: config.host },
+    connectionLimit: 5,
+    connectTimeout: 45_000,
+    acquireTimeout: 45_000,
+  });
+
   return new PrismaClient({ adapter });
 }
 
