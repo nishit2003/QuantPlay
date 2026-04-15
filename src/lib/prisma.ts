@@ -41,7 +41,7 @@ function createPrisma() {
     user: config.user,
     password: config.password,
     database: config.database,
-    ssl: { rejectUnauthorized: true, servername: config.host },
+    ssl: { rejectUnauthorized: true, servername: config.host } as unknown as boolean,
     connectionLimit: 5,
     connectTimeout: 45_000,
     acquireTimeout: 45_000,
