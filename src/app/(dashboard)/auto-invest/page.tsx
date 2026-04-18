@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { searchLocalTickers } from "@/lib/local-tickers";
 
 interface RecurringOrder {
   id: string;
@@ -12,6 +13,8 @@ interface RecurringOrder {
   createdAt: string;
 }
 
+interface SearchResult { symbol: string; shortName: string; exchange: string }
+
 export default function AutoInvestPage() {
   const [orders, setOrders] = useState<RecurringOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +23,45 @@ export default function AutoInvestPage() {
   const [frequency, setFrequency] = useState("WEEKLY");
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState("");
+
+  // Autosuggest state
+  const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const tickerInputRef = useRef<HTMLDivElement>(null);
+
+  // Autosuggest: search local tickers + API
+  useEffect(() => {
+    if (symbol.length < 1) { setSuggestions([]); setShowSuggestions(false); return; }
+
+    // Immediately show local results
+    const local = searchLocalTickers(symbol);
+    if (local.length > 0) {
+      setSuggestions(local.map((t) => ({ symbol: t.symbol, shortName: t.name, exchange: t.exchange })));
+      setShowSuggestions(true);
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/market/search?q=${encodeURIComponent(symbol)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.results?.length) setSuggestions(data.results);
+        }
+      } catch { /* keep local results */ }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [symbol]);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (tickerInputRef.current && !tickerInputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -87,16 +129,33 @@ export default function AutoInvestPage() {
           New Recurring Investment
         </h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <div>
+          <div ref={tickerInputRef} className="relative">
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Ticker</label>
             <input
               type="text"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
               placeholder="AAPL"
               required
+              autoComplete="off"
               className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
             />
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-50 mt-1 w-full min-w-[260px] rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 max-h-[240px] overflow-y-auto">
+                {suggestions.map((r) => (
+                  <button key={r.symbol} type="button"
+                    onMouseDown={() => { setSymbol(r.symbol); setShowSuggestions(false); }}
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-zinc-50 first:rounded-t-xl last:rounded-b-xl dark:hover:bg-zinc-800 transition">
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-900 dark:text-white">{r.symbol}</span>
+                      <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400 truncate">{r.shortName}</span>
+                    </div>
+                    <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 shrink-0">{r.exchange}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Amount ($)</label>

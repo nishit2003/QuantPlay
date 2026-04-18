@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import { StockChart } from "@/components/trade/stock-chart";
 import { Confetti } from "@/components/ui/confetti";
+import { searchLocalTickers } from "@/lib/local-tickers";
 
 interface SearchResult { symbol: string; shortName: string; exchange: string }
 
@@ -149,18 +150,36 @@ function TradePageInner() {
     })();
   }, []);
 
-  // Search
+  // Search — tries API first, falls back to local ticker database
   useEffect(() => {
     if (query.length < 1) { setResults([]); setShowResults(false); return; }
+
+    // Immediately show local results while API loads
+    const localResults = searchLocalTickers(query);
+    if (localResults.length > 0) {
+      setResults(localResults.map((t) => ({ symbol: t.symbol, shortName: t.name, exchange: t.exchange })));
+      if (!skipNextShowResultsRef.current) setShowResults(true);
+    }
+
     const timeout = setTimeout(async () => {
       setSearching(true);
       try {
         const res = await fetch(`/api/market/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        setResults(data.results ?? []);
+        if (res.ok) {
+          const data = await res.json();
+          const apiResults = data.results ?? [];
+          if (apiResults.length > 0) {
+            setResults(apiResults);
+          }
+          // If API returns empty, keep the local results already shown
+        }
+        // If API returned non-ok (401, 500), keep local results
         if (!skipNextShowResultsRef.current) setShowResults(true);
         skipNextShowResultsRef.current = false;
-      } catch { setResults([]); skipNextShowResultsRef.current = false; }
+      } catch {
+        // API failed — local results already shown, just reset flags
+        skipNextShowResultsRef.current = false;
+      }
       finally { setSearching(false); }
     }, 300);
     return () => clearTimeout(timeout);
