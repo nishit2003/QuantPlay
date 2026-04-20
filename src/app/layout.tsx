@@ -29,6 +29,19 @@ export const viewport = {
   viewportFit: "cover" as const,
 };
 
+/**
+ * IMPORTANT: do NOT add `overflow-x-hidden` to <body>.
+ *
+ * Per CSS spec, setting overflow on one axis silently sets the other
+ * axis to `auto`, turning the element into a scroll container. When
+ * <body> becomes a scroll container, descendant `position: sticky`
+ * elements use <body> (not the viewport / <html>) as their scrolling
+ * ancestor — but body's height is `auto`, so it never actually
+ * scrolls vertically, and sticky NEVER ACTIVATES.
+ *
+ * Keep horizontal-overflow guarding on <html> and on individual
+ * sections that need it (the marquee already self-clips).
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
