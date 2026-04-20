@@ -148,8 +148,12 @@ export function LessonLayout({ slug, title, subtitle, readTime, difficulty, acce
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-3">{title}</h2>
-      {children}
+      <h2 className="mb-4 text-lg font-bold text-zinc-900 dark:text-white">{title}</h2>
+      {/* space-y here gives every block inside a section (Paragraph,
+          BulletList, InfoCard, ComparisonTable, etc.) consistent
+          vertical breathing room. The outer `lesson-content space-y-6`
+          only handles spacing between Sections, not within them. */}
+      <div className="space-y-4">{children}</div>
     </section>
   );
 }
@@ -189,10 +193,10 @@ export function Paragraph({ children }: { children: React.ReactNode }) {
 
 export function BulletList({ items }: { items: string[] }) {
   return (
-    <ul className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+    <ul className="space-y-2.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
       {items.map((item, i) => (
-        <li key={i} className="flex items-start gap-2">
-          <svg className="mt-1 h-3 w-3 shrink-0 text-emerald-500" viewBox="0 0 12 12" fill="currentColor">
+        <li key={i} className="flex items-start gap-2.5">
+          <svg className="mt-1.5 h-3 w-3 shrink-0 text-emerald-500" viewBox="0 0 12 12" fill="currentColor">
             <circle cx="6" cy="6" r="3" />
           </svg>
           <span>{item}</span>

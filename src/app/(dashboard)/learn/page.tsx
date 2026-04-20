@@ -203,15 +203,15 @@ export default function LearnPage() {
                 </div>
               )}
 
-              <div className="mb-3">{mod.icon}</div>
-              <h3 className="text-base font-bold text-zinc-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+              <div className="mb-4">{mod.icon}</div>
+              <h3 className="text-base font-bold leading-snug text-zinc-900 transition-colors group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-400">
                 {mod.title}
               </h3>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400 line-clamp-2">
+              <p className="mt-2.5 text-sm leading-relaxed text-zinc-600 line-clamp-3 dark:text-zinc-400">
                 {mod.subtitle}
               </p>
 
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-5 flex items-center gap-2">
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${DIFFICULTY_STYLES[mod.difficulty]}`}>
                   {mod.difficulty}
                 </span>
